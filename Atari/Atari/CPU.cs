@@ -372,223 +372,214 @@ namespace Atari
                 case "29":
                     Console.WriteLine("AND A,"+instruction[1]);
                     _regA = (byte)(_regA & instruction[1]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "25":
                     Console.WriteLine("AND A,[" + instruction[1]+"]");
                     _regA = (byte)(_regA & _memory[instruction[1]]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "35":
                     Console.WriteLine("AND A,[" + instruction[1] + "+X]");
                     _regA = (byte)(_regA & _memory[instruction[1] + _regX]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "2D":
                     Console.WriteLine("AND A,[" + instruction[1] + "+" + instruction[2] + "]");
                     _regA = (byte)(_regA & _memory[(instruction[1] << 8 | instruction[2])]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "3D":
                     Console.WriteLine("AND A,[" + instruction[1] + "+" + instruction[2] + " +X]");
                     _regA = (byte)(_regA & _memory[(instruction[1] << 8 | instruction[2]) + _regX]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "39":
                     Console.WriteLine("AND A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
                     _regA = (byte)(_regA & _memory[(instruction[1] << 8 | instruction[2]) + _regY]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "21":
                     Console.WriteLine("AND A,[[" + instruction[1] + "+X]]");
                     _regA = (byte)(_regA & _memory[_memory[instruction[1] + _regX]]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "31":
                     Console.WriteLine("AND A,[[" + instruction[1] + "]+Y]");
                     _regA = (byte)(_regA & _memory[_memory[instruction[1]] + _regY]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 #endregion
                 #region Logical XOR memory with accumulator
                 case "49":
                     Console.WriteLine("XOR A," + instruction[1]);
                     _regA = (byte)(_regA ^ instruction[1]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "45":
                     Console.WriteLine("XOR A,[" + instruction[1] + "]");
                     _regA = (byte)(_regA ^ _memory[instruction[1]]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "55":
                     Console.WriteLine("XOR A,[" + instruction[1] + "+X]");
                     _regA = (byte)(_regA ^ _memory[instruction[1] + _regX]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "4D":
                     Console.WriteLine("XOR A,[" + instruction[1] + "+" + instruction[2] + "]");
                     _regA = (byte)(_regA ^ _memory[(instruction[1] << 8 | instruction[2])]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "5D":
                     Console.WriteLine("XOR A,[" + instruction[1] + "+" + instruction[2] + " +X]");
                     _regA = (byte)(_regA ^ _memory[(instruction[1] << 8 | instruction[2]) + _regX]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "59":
                     Console.WriteLine("XOR A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
                     _regA = (byte)(_regA ^ _memory[(instruction[1] << 8 | instruction[2]) + _regY]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "41":
                     Console.WriteLine("XOR A,[[" + instruction[1] + "+X]]");
                     _regA = (byte)(_regA ^ _memory[_memory[instruction[1] + _regX]]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "51":
                     Console.WriteLine("XOR A,[[" + instruction[1] + "]+Y]");
                     _regA = (byte)(_regA ^ _memory[_memory[instruction[1]] + _regY]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 #endregion
                 #region Logical OR memory with accumulator
                 case "09":
                     Console.WriteLine("OR A," + instruction[1]);
                     _regA = (byte)(_regA | instruction[1]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "05":
                     Console.WriteLine("OR A,[" + instruction[1] + "]");
                     _regA = (byte)(_regA | _memory[instruction[1]]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "15":
                     Console.WriteLine("OR A,[" + instruction[1] + "+X]");
                     _regA = (byte)(_regA | _memory[instruction[1] + _regX]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "0D":
                     Console.WriteLine("OR A,[" + instruction[1] + "+" + instruction[2] + "]");
                     _regA = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2])]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "1D":
                     Console.WriteLine("OR A,[" + instruction[1] + "+" + instruction[2] + " +X]");
                     _regA = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2]) + _regX]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "19":
                     Console.WriteLine("OR A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
                     _regA = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2]) + _regY]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "01":
                     Console.WriteLine("OR A,[[" + instruction[1] + "+X]]");
                     _regA = (byte)(_regA | _memory[_memory[instruction[1] + _regX]]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
                 case "11":
                     Console.WriteLine("OR A,[[" + instruction[1] + "]+Y]");
                     _regA = (byte)(_regA | _memory[_memory[instruction[1]] + _regY]);
-                    if (_regA == 0)
-                        _flagZ = true;
-                    else
-                        _flagZ = false;
-                    _flagN = (_regA & (1 << 7)) != 0;
+                    processFlags(_regA, true, true);
                     break;
+                #endregion
+                #region Compare
+                case "C9":
+                    Console.WriteLine("CMP A," + instruction[1]);
+                    regBuffer = (byte)(_regA - instruction[1]);
+                    processFlags(regBuffer, true, true);
+                    _flagC = (regBuffer == 1);
+                    break;
+                case "C5":
+                    Console.WriteLine("CMP A,[" + instruction[1] + "]");
+                    regBuffer = (byte)(_regA | _memory[instruction[1]]);
+                    processFlags(regBuffer, true, true);
+                    _flagC = (regBuffer == 1);
+                    break;
+                case "D5":
+                    Console.WriteLine("CMP A,[" + instruction[1] + "+X]");
+                    regBuffer = (byte)(_regA | _memory[instruction[1] + _regX]);
+                    processFlags(regBuffer, true, true);
+                    _flagC = (regBuffer == 1);
+                    break;
+                case "CD":
+                    Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + "]");
+                    regBuffer = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2])]);
+                    processFlags(regBuffer, true, true);
+                    _flagC = (regBuffer == 1);
+                    break;
+                case "DD":
+                    Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + " +X]");
+                    regBuffer = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2]) + _regX]);
+                    processFlags(regBuffer, true, true);
+                    _flagC = (regBuffer == 1);
+                    break;
+                case "D9":
+                    Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
+                    regBuffer = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2]) + _regY]);
+                    processFlags(regBuffer, true, true);
+                    _flagC = (regBuffer == 1);
+                    break;
+                case "C1":
+                    Console.WriteLine("CMP A,[[" + instruction[1] + "+X]]");
+                    regBuffer = (byte)(_regA | _memory[_memory[instruction[1] + _regX]]);
+                    processFlags(regBuffer, true, true);
+                    _flagC = (regBuffer == 1);
+                    break;
+                case "D1":
+                    Console.WriteLine("CMP A,[[" + instruction[1] + "]+Y]");
+                    regBuffer = (byte)(_regA | _memory[_memory[instruction[1]] + _regY]);
+                    processFlags(regBuffer, true, true);
+                    _flagC = (regBuffer == 1);
+                    break;
+                case "E0":
+                    Console.WriteLine("CMP X," + instruction[1]);
+                    regBuffer = (byte)(_regX - instruction[1]);
+                    processFlags(regBuffer, true, true);
+                    _flagC = (regBuffer == 1);
+                    break;
+                case "E4":
+                    Console.WriteLine("CMP X,[" + instruction[1] + "]");
+                    regBuffer = (byte)(_regX | _memory[instruction[1]]);
+                    processFlags(regBuffer, true, true);
+                    _flagC = (regBuffer == 1);
+                    break;
+                case "EC":
+                    Console.WriteLine("CMP X,[" + instruction[1] + "+" + instruction[2] + "]");
+                    regBuffer = (byte)(_regX | _memory[(instruction[1] << 8 | instruction[2])]);
+                    processFlags(regBuffer, true, true);
+                    _flagC = (regBuffer == 1);
+                    break;
+                case "C0":
+                    Console.WriteLine("CMP Y," + instruction[1]);
+                    regBuffer = (byte)(_regY - instruction[1]);
+                    processFlags(regBuffer, true, true);
+                    _flagC = (regBuffer == 1);
+                    break;
+                case "C4":
+                    Console.WriteLine("CMP X,[" + instruction[1] + "]");
+                    regBuffer = (byte)(_regY | _memory[instruction[1]]);
+                    processFlags(regBuffer, true, true);
+                    _flagC = (regBuffer == 1);
+                    break;
+                case "CC":
+                    Console.WriteLine("CMP X,[" + instruction[1] + "+" + instruction[2] + "]");
+                    regBuffer = (byte)(_regY | _memory[(instruction[1] << 8 | instruction[2])]);
+                    processFlags(regBuffer, true, true);
+                    _flagC = (regBuffer == 1);
+                    break;
+
                 #endregion
                 default:
                     Console.WriteLine("UNKNOWN INSTRUCTION");

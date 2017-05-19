@@ -41,6 +41,7 @@ namespace Atari
         {
             var pText = (_flagN ? "1" : "0") + (_flagV ? "1" : "0") + (_flagU ? "1" : "0") + (_flagB ? "1" : "0") + (_flagD ? "1" : "0") + (_flagI ? "1" : "0") + (_flagZ ? "1" : "0") + (_flagC ? "1" : "0");
             _regP = Convert.ToByte(pText, 2);
+            _regPC++;
             Console.WriteLine("CURRENT INSTRUCTION");
             switch (BitConverter.ToString(new[] { instruction[0] }).Replace("-", " "))
             {
@@ -499,85 +500,85 @@ namespace Atari
                     Console.WriteLine("CMP A," + instruction[1]);
                     regBuffer = (byte)(_regA - instruction[1]);
                     processFlags(regBuffer, true, true);
-                    _flagC = (regBuffer == 1);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
                 case "C5":
                     Console.WriteLine("CMP A,[" + instruction[1] + "]");
                     regBuffer = (byte)(_regA | _memory[instruction[1]]);
                     processFlags(regBuffer, true, true);
-                    _flagC = (regBuffer == 1);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
                 case "D5":
                     Console.WriteLine("CMP A,[" + instruction[1] + "+X]");
                     regBuffer = (byte)(_regA | _memory[instruction[1] + _regX]);
                     processFlags(regBuffer, true, true);
-                    _flagC = (regBuffer == 1);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
                 case "CD":
                     Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + "]");
                     regBuffer = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2])]);
                     processFlags(regBuffer, true, true);
-                    _flagC = (regBuffer == 1);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
                 case "DD":
                     Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + " +X]");
                     regBuffer = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2]) + _regX]);
                     processFlags(regBuffer, true, true);
-                    _flagC = (regBuffer == 1);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
                 case "D9":
                     Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
                     regBuffer = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2]) + _regY]);
                     processFlags(regBuffer, true, true);
-                    _flagC = (regBuffer == 1);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
                 case "C1":
                     Console.WriteLine("CMP A,[[" + instruction[1] + "+X]]");
                     regBuffer = (byte)(_regA | _memory[_memory[instruction[1] + _regX]]);
                     processFlags(regBuffer, true, true);
-                    _flagC = (regBuffer == 1);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
                 case "D1":
                     Console.WriteLine("CMP A,[[" + instruction[1] + "]+Y]");
                     regBuffer = (byte)(_regA | _memory[_memory[instruction[1]] + _regY]);
                     processFlags(regBuffer, true, true);
-                    _flagC = (regBuffer == 1);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
                 case "E0":
                     Console.WriteLine("CMP X," + instruction[1]);
                     regBuffer = (byte)(_regX - instruction[1]);
                     processFlags(regBuffer, true, true);
-                    _flagC = (regBuffer == 1);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
                 case "E4":
                     Console.WriteLine("CMP X,[" + instruction[1] + "]");
                     regBuffer = (byte)(_regX | _memory[instruction[1]]);
                     processFlags(regBuffer, true, true);
-                    _flagC = (regBuffer == 1);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
                 case "EC":
                     Console.WriteLine("CMP X,[" + instruction[1] + "+" + instruction[2] + "]");
                     regBuffer = (byte)(_regX | _memory[(instruction[1] << 8 | instruction[2])]);
                     processFlags(regBuffer, true, true);
-                    _flagC = (regBuffer == 1);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
                 case "C0":
                     Console.WriteLine("CMP Y," + instruction[1]);
                     regBuffer = (byte)(_regY - instruction[1]);
                     processFlags(regBuffer, true, true);
-                    _flagC = (regBuffer == 1);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
                 case "C4":
-                    Console.WriteLine("CMP X,[" + instruction[1] + "]");
+                    Console.WriteLine("CMP Y,[" + instruction[1] + "]");
                     regBuffer = (byte)(_regY | _memory[instruction[1]]);
                     processFlags(regBuffer, true, true);
-                    _flagC = (regBuffer == 1);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
                 case "CC":
-                    Console.WriteLine("CMP X,[" + instruction[1] + "+" + instruction[2] + "]");
+                    Console.WriteLine("CMP Y,[" + instruction[1] + "+" + instruction[2] + "]");
                     regBuffer = (byte)(_regY | _memory[(instruction[1] << 8 | instruction[2])]);
                     processFlags(regBuffer, true, true);
-                    _flagC = (regBuffer == 1);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
 
                 #endregion
@@ -609,10 +610,7 @@ namespace Atari
             string byteAsString1 = Convert.ToString(value1, 2).PadLeft(8, '0');
             string valueAddedAsString = Convert.ToString(valueAdded, 2).PadLeft(8, '0');
             string byteAsString2 = Convert.ToString(value2, 2).PadLeft(8, '0');
-            if (valueAdded > value1)
-                _flagC = true;
-            else
-                _flagC = false;
+            calcCarryFromSubtract(value1, valueAdded);
             if (byteAsString1[0] == '0' && valueAddedAsString[0] == '0' && byteAsString2[0] == '1' ||
                 byteAsString1[0] == '1' && valueAddedAsString[0] == '1' && byteAsString2[0] == '0')
                 _flagV = true;
@@ -651,6 +649,14 @@ namespace Atari
             if (n)
                 _flagN = (byteAsString[0] == '0');
 
+        }
+
+        private void calcCarryFromSubtract(byte value1, byte valueAdded)
+        {
+            if (valueAdded > value1)
+                _flagC = true;
+            else
+                _flagC = false;
         }
 
         private void ByteToFlags(byte b)

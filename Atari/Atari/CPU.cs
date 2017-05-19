@@ -41,6 +41,7 @@ namespace Atari
         {
             var pText = (_flagN ? "1" : "0") + (_flagV ? "1" : "0") + (_flagU ? "1" : "0") + (_flagB ? "1" : "0") + (_flagD ? "1" : "0") + (_flagI ? "1" : "0") + (_flagZ ? "1" : "0") + (_flagC ? "1" : "0");
             _regP = Convert.ToByte(pText, 2);
+            Console.WriteLine("CURRENT INSTRUCTION");
             switch (BitConverter.ToString(new[] { instruction[0] }).Replace("-", " "))
             {
                 #region Register Immeditate To Register Transfer
@@ -588,9 +589,28 @@ namespace Atari
                         _flagZ = false;
                     _flagN = (_regA & (1 << 7)) != 0;
                     break;
-                    #endregion
+                #endregion
+                default:
+                    Console.WriteLine("UNKNOWN INSTRUCTION");
+                    break;
             }
+            Console.WriteLine("-----------------");
+            Console.WriteLine("FLAG VALUES");
+            Console.WriteLine("CNVZ");
+            Console.WriteLine(Convert.ToString(Convert.ToInt32(_flagC)) + Convert.ToString(Convert.ToInt32(_flagN)) + Convert.ToString(Convert.ToInt32(_flagV)) + Convert.ToString(Convert.ToInt32(_flagZ)));
+            Console.WriteLine("-----------------");
+            Console.WriteLine("REGISTRY VALUES");
+            Console.WriteLine("A " + _regA);
+            Console.WriteLine("P " + _regP);
+            Console.WriteLine("PC " + _regPC);
+            Console.WriteLine("S " + _regS);
+            Console.WriteLine("X " + _regX);
+            Console.WriteLine("Y " + _regY);
+            System.Threading.Thread.Sleep(30);
+            Console.Clear();
+            
             return true;
+
         }
 
         private void processSubtractFlags(byte value1, byte valueAdded, byte value2)

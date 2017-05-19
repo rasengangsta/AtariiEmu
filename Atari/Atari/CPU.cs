@@ -580,7 +580,72 @@ namespace Atari
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
                     break;
-
+                #endregion
+                #region Increment
+                case "E6":
+                    Console.WriteLine("INC [" + instruction[1] + "]");
+                    _memory[instruction[1]] = (byte)(_memory[instruction[1]] + 1);
+                    processFlags(_memory[instruction[1]], true, true);
+                    break;
+                case "F6":
+                    Console.WriteLine("INC [" + instruction[1] + "+X]");
+                    _memory[instruction[1] + _regX] = (byte)(_memory[instruction[1] + _regX] + 1);
+                    processFlags(_memory[instruction[1] + _regX], true, true);
+                    break;
+                case "EE":
+                    Console.WriteLine("INC [" + instruction[1] + "+" + instruction[2] + "]");
+                    _memory[(instruction[1] << 8 | instruction[2])] = (byte)(_memory[(instruction[1] << 8 | instruction[2])] + 1);
+                    processFlags(regBuffer, true, true);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
+                    break;
+                case "FE":
+                    Console.WriteLine("INC [" + instruction[1] + "+" + instruction[2] + "] + X");
+                    _memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(_memory[(instruction[1] << 8 | instruction[2]) + _regX] + 1);
+                    processFlags(_memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    break;
+                case "E8":
+                    Console.WriteLine("INC X");
+                    _regX = (byte)(_regX + 1);
+                    processFlags(_regX, true, true);
+                    break;
+                case "C8":
+                    Console.WriteLine("INC Y");
+                    _regY = (byte)(_regY + 1);
+                    processFlags(_regY, true, true);
+                    break;
+                #endregion
+                #region Decrement
+                case "C6":
+                    Console.WriteLine("DEC [" + instruction[1] + "]");
+                    _memory[instruction[1]] = (byte)(_memory[instruction[1]] - 1);
+                    processFlags(_memory[instruction[1]], true, true);
+                    break;
+                case "D6":
+                    Console.WriteLine("DEC [" + instruction[1] + "+X]");
+                    _memory[instruction[1] + _regX] = (byte)(_memory[instruction[1] + _regX] - 1);
+                    processFlags(_memory[instruction[1] + _regX], true, true);
+                    break;
+                case "CE":
+                    Console.WriteLine("DEC [" + instruction[1] + "+" + instruction[2] + "]");
+                    _memory[(instruction[1] << 8 | instruction[2])] = (byte)(_memory[(instruction[1] << 8 | instruction[2])] - 1);
+                    processFlags(regBuffer, true, true);
+                    calcCarryFromSubtract(regBuffer, instruction[1]);
+                    break;
+                case "DE":
+                    Console.WriteLine("DEC [" + instruction[1] + "+" + instruction[2] + "] + X");
+                    _memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(_memory[(instruction[1] << 8 | instruction[2]) + _regX] - 1);
+                    processFlags(_memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    break;
+                case "CA":
+                    Console.WriteLine("DEC X");
+                    _regX = (byte)(_regX - 1);
+                    processFlags(_regX, true, true);
+                    break;
+                case "88":
+                    Console.WriteLine("DEC Y");
+                    _regY = (byte)(_regY - 1);
+                    processFlags(_regY, true, true);
+                    break;
                 #endregion
                 default:
                     Console.WriteLine("UNKNOWN INSTRUCTION");

@@ -308,6 +308,65 @@ namespace Atari
                     break;
 
                 #endregion
+                #region Subtract memory from accumulator with carry
+                case "E9":
+                    Console.WriteLine("SBC A," + instruction[1]);
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA - instruction[1] + Convert.ToByte(_flagC) - 1);
+                    processFlags(_regA, true, true);
+                    processSubtractFlags(regBuffer, instruction[1], _regA);
+                    break;
+                case "E5":
+                    Console.WriteLine("SBC A,[" + _memory[instruction[1]] + "]");
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA - _memory[instruction[1]] + Convert.ToByte(_flagC) -1);
+                    processFlags(_regA, true, true);
+                    processSubtractFlags(regBuffer, _memory[instruction[1]], _regA);
+                    break;
+                case "F5":
+                    Console.WriteLine("SBC A,[" + _memory[instruction[1]] + "+X]");
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA - _memory[instruction[1] + _regX] + Convert.ToByte(_flagC) -1);
+                    processFlags(_regA, true, true);
+                    processSubtractFlags(regBuffer, _memory[instruction[1] + _regX], _regA);
+                    break;
+                case "ED":
+                    Console.WriteLine("SBC A,[" + _memory[instruction[1]] + "+" + _memory[instruction[2]] + "]");
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA - _memory[(instruction[1] << 8 | instruction[2])] + Convert.ToByte(_flagC) -1);
+                    processFlags(_regA, true, true);
+                    processSubtractFlags(regBuffer, _memory[(instruction[1] << 8 | instruction[2])], _regA);
+                    break;
+                case "FD":
+                    Console.WriteLine("SBC A,[" + _memory[instruction[1]] + "+" + _memory[instruction[2]] + "+X]");
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA - _memory[(instruction[1] << 8 | instruction[2]) + _regX] + Convert.ToByte(_flagC) -1);
+                    processFlags(_regA, true, true);
+                    processSubtractFlags(regBuffer, _memory[(instruction[1] << 8 | instruction[2]) + _regX], _regA);
+                    break;
+                case "F9":
+                    Console.WriteLine("SBC A,[" + _memory[instruction[1]] + "+" + _memory[instruction[2]] + "+Y]");
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA - _memory[(instruction[1] << 8 | instruction[2]) + _regY] + Convert.ToByte(_flagC) -1);
+                    processFlags(_regA, true, true);
+                    processSubtractFlags(regBuffer, _memory[(instruction[1] << 8 | instruction[2]) + _regY], _regA);
+                    break;
+                case "E1":
+                    Console.WriteLine("SBC A,[[" + _memory[instruction[1]] + "+X]]");
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA - _memory[_memory[instruction[1] + _regX]] + Convert.ToByte(_flagC) - 1);
+                    processFlags(_regA, true, true);
+                    processSubtractFlags(regBuffer, _memory[_memory[instruction[1] + _regX]], _regA);
+                    break;
+                case "F1":
+                    Console.WriteLine("SBC A,[[" + _memory[instruction[1]] + "]+Y]");
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA - _memory[_memory[instruction[1]] + _regY] + Convert.ToByte(_flagC) - 1);
+                    processFlags(_regA, true, true);
+                    processSubtractFlags(regBuffer, _memory[_memory[instruction[1]] + _regY], _regA);
+                    break;
+
+                #endregion
                 #region Logical AND memory with accumulator
                 case "29":
                     Console.WriteLine("AND A,"+instruction[1]);
@@ -532,6 +591,22 @@ namespace Atari
                     #endregion
             }
             return true;
+        }
+
+        private void processSubtractFlags(byte value1, byte valueAdded, byte value2)
+        {
+            string byteAsString1 = Convert.ToString(value1, 2).PadLeft(8, '0');
+            string valueAddedAsString = Convert.ToString(valueAdded, 2).PadLeft(8, '0');
+            string byteAsString2 = Convert.ToString(value2, 2).PadLeft(8, '0');
+            if (valueAdded > value1)
+                _flagC = true;
+            else
+                _flagC = false;
+            if (byteAsString1[0] == '0' && valueAddedAsString[0] == '0' && byteAsString2[0] == '1' ||
+                byteAsString1[0] == '1' && valueAddedAsString[0] == '1' && byteAsString2[0] == '0')
+                _flagV = true;
+            else
+                _flagV = false;
         }
 
         private void processAddFlags(byte value1, byte valueAdded, byte value2)

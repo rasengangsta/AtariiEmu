@@ -4,3 +4,6 @@ c:\users\david\documents\visual studio 2015\Projects\Atari\Atari\bin\Debug\Atari
 c:\users\david\documents\visual studio 2015\Projects\Atari\Atari\obj\Debug\Atari.csprojResolveAssemblyReference.cache
 c:\users\david\documents\visual studio 2015\Projects\Atari\Atari\obj\Debug\Atari.exe
 c:\users\david\documents\visual studio 2015\Projects\Atari\Atari\obj\Debug\Atari.pdb
+C:\Users\David\AtariiEmu\Atari\Atari\bin\Debug\Atari.exe.config
+C:\Users\David\AtariiEmu\Atari\Atari\obj\Debug\Atari.exe
+C:\Users\David\AtariiEmu\Atari\Atari\obj\Debug\Atari.pdb

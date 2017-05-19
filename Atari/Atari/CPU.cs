@@ -27,6 +27,8 @@ namespace Atari
         bool _flagN; // Negative (sign)
         bool _flagU = true; // Unused Flag
 
+        byte regBuffer;
+
         byte[] _memory; // Addressable memory
 
         public CPU()
@@ -250,11 +252,61 @@ namespace Atari
                 #region Add memory to accumulator with carry
                 case "69":
                     Console.WriteLine("ADC A," + instruction[1]);
-                    byte regABuffer = _regA;
+                    regBuffer = _regA;
                     _regA = (byte)(_regA + instruction[1] + Convert.ToByte(_flagC));
                     processFlags(_regA, true, true);
-                    processAddFlags(regABuffer, _regA);
+                    processAddFlags(regBuffer, instruction[1], _regA);
                     break;
+                case "65":
+                    Console.WriteLine("ADC A,[" + _memory[instruction[1]] + "]");
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA + _memory[instruction[1]] + Convert.ToByte(_flagC));
+                    processFlags(_regA, true, true);
+                    processAddFlags(regBuffer, _memory[instruction[1]], _regA);
+                    break;
+                case "75":
+                    Console.WriteLine("ADC A,[" + _memory[instruction[1]] + "+X]");
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA + _memory[instruction[1] + _regX] + Convert.ToByte(_flagC));
+                    processFlags(_regA, true, true);
+                    processAddFlags(regBuffer, _memory[instruction[1] + _regX], _regA);
+                    break;
+                case "6D":
+                    Console.WriteLine("ADC A,[" + _memory[instruction[1]] + "+" + _memory[instruction[2]] + "]");
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA + _memory[(instruction[1] << 8 | instruction[2])] + Convert.ToByte(_flagC));
+                    processFlags(_regA, true, true);
+                    processAddFlags(regBuffer, _memory[(instruction[1] << 8 | instruction[2])], _regA);
+                    break;
+                case "7D":
+                    Console.WriteLine("ADC A,[" + _memory[instruction[1]] + "+" + _memory[instruction[2]] + "+X]");
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA + _memory[(instruction[1] << 8 | instruction[2]) + _regX] + Convert.ToByte(_flagC));
+                    processFlags(_regA, true, true);
+                    processAddFlags(regBuffer, _memory[(instruction[1] << 8 | instruction[2]) + _regX], _regA);
+                    break;
+                case "79":
+                    Console.WriteLine("ADC A,[" + _memory[instruction[1]] + "+" + _memory[instruction[2]] + "+Y]");
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA + _memory[(instruction[1] << 8 | instruction[2]) + _regY] + Convert.ToByte(_flagC));
+                    processFlags(_regA, true, true);
+                    processAddFlags(regBuffer, _memory[(instruction[1] << 8 | instruction[2]) + _regY], _regA);
+                    break;
+                case "61":
+                    Console.WriteLine("ADC A,[[" + _memory[instruction[1]] + "+X]]");
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA + _memory[_memory[instruction[1] + _regX]] + Convert.ToByte(_flagC));
+                    processFlags(_regA, true, true);
+                    processAddFlags(regBuffer, _memory[_memory[instruction[1] + _regX]], _regA);
+                    break;
+                case "71":
+                    Console.WriteLine("ADC A,[[" + _memory[instruction[1]] + "]+Y]");
+                    regBuffer = _regA;
+                    _regA = (byte)(_regA + _memory[_memory[instruction[1]] + _regY] + Convert.ToByte(_flagC));
+                    processFlags(_regA, true, true);
+                    processAddFlags(regBuffer, _memory[_memory[instruction[1]] + _regY], _regA);
+                    break;
+
                 #endregion
                 #region Logical AND memory with accumulator
                 case "29":
@@ -487,7 +539,8 @@ namespace Atari
             string byteAsString1 = Convert.ToString(value1, 2).PadLeft(8, '0');
             string valueAddedAsString = Convert.ToString(valueAdded, 2).PadLeft(8, '0');
             string byteAsString2 = Convert.ToString(value2, 2).PadLeft(8, '0');
-            if (byteAsString1[0] == '1' && byteAsString2[0] == '0')
+            if (byteAsString1[0] == '1' && byteAsString2[0] == '0' ||
+                valueAddedAsString[0] == '1' && byteAsString2[0] == '0')
                 _flagC = false;
             else
                 _flagC = true;

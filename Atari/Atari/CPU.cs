@@ -6,798 +6,937 @@ using System.Threading.Tasks;
 
 namespace Atari
 {
-    class CPU
+    public static class CPU
     {
 
         //REGISTERS
-        byte _regA; // Accumulator
-        byte _regX; // Index Register X
-        byte _regY; // Index Register Y
-        public short _regPC { get; set; } // Program Counter
-        byte _regS; // Stack Pointer 
-        byte _regP; // Processor Status Register
+        static byte _regA; // Accumulator
+        static byte _regX; // Index Register X
+        static byte _regY; // Index Register Y
+        public static ushort _regPC { get; set; } // Program Counter
+        static byte _regS; // Stack Pointer 
+        static byte _regP; // Processor Status Register
 
         //REGISTER FLAGS
-        bool _flagC; // Carry
-        bool _flagZ; // Zero
-        bool _flagI; // IRQ Disable
-        bool _flagD; // Decimal Mode
-        bool _flagB; // Break Flag
-        bool _flagV; // Overflow
-        bool _flagN; // Negative (sign)
-        bool _flagU = true; // Unused Flag
+        static bool _flagC; // Carry
+        static bool _flagZ; // Zero
+        static bool _flagI; // IRQ Disable
+        static bool _flagD; // Decimal Mode
+        static bool _flagB; // Break Flag
+        static bool _flagV; // Overflow
+        static bool _flagN; // Negative (sign)
+        static bool _flagU = true; // Unused Flag
 
-        byte regBuffer;
+        public static int clock = 0;
 
-        byte[] _memory; // Addressable memory
+        static byte regBuffer;
 
-        public CPU()
+        static CPU()
         {
             _regS = 0;
-            _memory = RAM._memory;
         }
 
-        public bool ProcessInstruction (byte[] instruction)
+        public static bool ProcessInstruction (byte[] instruction)
         {
             var pText = (_flagN ? "1" : "0") + (_flagV ? "1" : "0") + (_flagU ? "1" : "0") + (_flagB ? "1" : "0") + (_flagD ? "1" : "0") + (_flagI ? "1" : "0") + (_flagZ ? "1" : "0") + (_flagC ? "1" : "0");
             _regP = Convert.ToByte(pText, 2);
-            Console.WriteLine("CURRENT INSTRUCTION");
-            switch (BitConverter.ToString(new[] { instruction[0] }).Replace("-", " "))
+            clock++;
+            //Console.WriteLine("CURRENT INSTRUCTION");
+            switch (instruction[0])
             {
                 #region Register Immeditate To Register Transfer
-                case "A8":
-                    Console.WriteLine("MOV Y,A");
+                case 0xA8:
+                    //Console.WriteLine("MOV Y,A");
                     _regY = _regA;
                     processFlags(_regY, true, true);
+                    _regPC += 1;
                     break;
-                case "AA":
-                    Console.WriteLine("MOV X,A");
+                case 0xAA:
+                    //Console.WriteLine("MOV X,A");
                     _regX = _regA;
                     processFlags(_regX, true, true);
+                    _regPC += 1;
                     break;
-                case "BA":
-                    Console.WriteLine("MOV X,S");
+                case 0xBA:
+                    //Console.WriteLine("MOV X,S");
                     _regX = _regS;
                     processFlags(_regX, true, true);
+                    _regPC += 1;
                     break;
-                case "98":
-                    Console.WriteLine("MOV A,Y");
+                case 0x98:
+                    //Console.WriteLine("MOV A,Y");
                     _regA = _regY;
                     processFlags(_regA, true, true);
+                    _regPC += 1;
                     break;
-                case "8A":
-                    Console.WriteLine("MOV A,X");
+                case 0x8A:
+                    //Console.WriteLine("MOV A,X");
                     _regA = _regX;
                     processFlags(_regA, true, true);
+                    _regPC += 1;
                     break;
-                case "9A":
-                    Console.WriteLine("MOV S,X");
+                case 0x9A:
+                    //Console.WriteLine("MOV S,X");
                     _regS = (byte)(_regX);
+                    _regPC += 1;
                     break;
-                case "A9":
-                    Console.WriteLine("MOV A,"+instruction[1]);
+                case 0xA9:
+                    //Console.WriteLine("MOV A,"+instruction[1]);
                     _regA = instruction[1];
                     processFlags(_regA, true, true);
+                    _regPC += 1;
                     break;
-                case "A2":
-                    Console.WriteLine("MOV X," + instruction[1]);
+                case 0xA2:
+                    //Console.WriteLine("MOV X," + instruction[1]);
                     _regX = instruction[1];
                     processFlags(_regX, true, true);
+                    _regPC += 1;
                     break;
-                case "A0":
-                    Console.WriteLine("MOV Y," + instruction[1]);
+                case 0xA0:
+                    //Console.WriteLine("MOV Y," + instruction[1]);
                     _regY = instruction[1];
                     processFlags(_regY, true, true);
+                    _regPC += 1;
                     break;
                 #endregion
                 #region Load Register from Memory
 
-                case "A5":
-                    Console.WriteLine("MOV A,[" + instruction[1] + "]");
-                    _regA = _memory[instruction[1]];
+                case 0xA5:
+                    //Console.WriteLine("MOV A,[" + instruction[1] + "]");
+                    _regA = RAM.Memory[instruction[1]];
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "B5":
-                    Console.WriteLine("MOV A,[" + instruction[1] + "+X]");
-                    _regA = _memory[instruction[1]+_regX];
+                case 0xB5:
+                    //Console.WriteLine("MOV A,[" + instruction[1] + "+X]");
+                    _regA = RAM.Memory[instruction[1]+_regX];
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "AD":
-                    Console.WriteLine("MOV A,[" + instruction[1] + "+" + instruction[2] + "]");
-                    _regA = _memory[instruction[1] << 8 | instruction[2]];
+                case 0xAD:
+                    //Console.WriteLine("MOV A,[" + instruction[1] + "+" + instruction[2] + "]");
+                    _regA = RAM.Memory[instruction[1] << 8 | instruction[2]];
                     processFlags(_regA, true, true);
+                    _regPC += 3;
                     break;
-                case "BD":
-                    Console.WriteLine("MOV A,[" + instruction[1] + "+" + instruction[2] + "+X]");
-                    _regA = _memory[(instruction[1] << 8 | instruction[2])+_regX];
+                case 0xBD:
+                    //Console.WriteLine("MOV A,[" + instruction[1] + "+" + instruction[2] + "+X]");
+                    _regA = RAM.Memory[(instruction[1] << 8 | instruction[2])+_regX];
                     processFlags(_regA, true, true);
+                    _regPC += 3;
                     break;
-                case "B9":
-                    Console.WriteLine("MOV A,[" + instruction[1] + "+" + instruction[2] + "+Y]");
-                    _regA = _memory[(instruction[1] << 8 | instruction[2]) + _regY];
+                case 0xB9:
+                    //Console.WriteLine("MOV A,[" + instruction[1] + "+" + instruction[2] + "+Y]");
+                    _regA = RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY];
                     processFlags(_regA, true, true);
+                    _regPC += 3;
                     break;
-                case "A1":
-                    Console.WriteLine("MOV A,[[" + instruction[1] + "+X]]");
-                    _regA = _memory[_memory[instruction[1] + _regX]];
+                case 0xA1:
+                    //Console.WriteLine("MOV A,[[" + instruction[1] + "+X]]");
+                    _regA = RAM.Memory[RAM.Memory[instruction[1] + _regX]];
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "B1":
-                    Console.WriteLine("MOV A,[[" + instruction[1] + "]+X]");
-                    _regA = _memory[_memory[instruction[1]]+_regX];
+                case 0xB1:
+                    //Console.WriteLine("MOV A,[[" + instruction[1] + "]+X]");
+                    _regA = RAM.Memory[RAM.Memory[instruction[1]]+_regX];
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "A6":
-                    Console.WriteLine("MOV X,[" + instruction[1] + "]");
-                    _regX = _memory[instruction[1]];
+                case 0xA6:
+                    //Console.WriteLine("MOV X,[" + instruction[1] + "]");
+                    _regX = RAM.Memory[instruction[1]];
                     processFlags(_regX, true, true);
+                    _regPC += 2;
                     break;
-                case "B6":
-                    Console.WriteLine("MOV X,[" + instruction[1] + "+Y]");
-                    _regX = _memory[instruction[1] + _regY];
+                case 0xB6:
+                    //Console.WriteLine("MOV X,[" + instruction[1] + "+Y]");
+                    _regX = RAM.Memory[instruction[1] + _regY];
                     processFlags(_regX, true, true);
+                    _regPC += 2;
                     break;
-                case "AE":
-                    Console.WriteLine("MOV X,[" + instruction[1] + "+" + instruction[2] + "]");
-                    _regX = _memory[instruction[1] << 8 | instruction[2]];
+                case 0xAE:
+                    //Console.WriteLine("MOV X,[" + instruction[1] + "+" + instruction[2] + "]");
+                    _regX = RAM.Memory[instruction[1] << 8 | instruction[2]];
                     processFlags(_regX, true, true);
+                    _regPC += 3;
                     break;
-                case "BE":
-                    Console.WriteLine("MOV A,[" + instruction[1] + "+" + instruction[2] + "+Y]");
-                    _regX = _memory[(instruction[1] << 8 | instruction[2]) + _regY];
+                case 0xBE:
+                    //Console.WriteLine("MOV A,[" + instruction[1] + "+" + instruction[2] + "+Y]");
+                    _regX = RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY];
                     processFlags(_regX, true, true);
+                    _regPC += 3;
                     break;
-                case "A4":
-                    Console.WriteLine("MOV Y,[" + instruction[1] + "]");
-                    _regY = _memory[instruction[1]];
+                case 0xA4:
+                    //Console.WriteLine("MOV Y,[" + instruction[1] + "]");
+                    _regY = RAM.Memory[instruction[1]];
                     processFlags(_regY, true, true);
+                    _regPC += 2;
                     break;
-                case "B4":
-                    Console.WriteLine("MOV Y,[" + instruction[1] + "+X]");
-                    _regY = _memory[instruction[1] + _regX];
+                case 0xB4:
+                    //Console.WriteLine("MOV Y,[" + instruction[1] + "+X]");
+                    _regY = RAM.Memory[instruction[1] + _regX];
                     processFlags(_regY, true, true);
+                    _regPC += 2;
                     break;
-                case "AC":
-                    Console.WriteLine("MOV Y,[" + instruction[1] + "+" + instruction[2] + "]");
-                    _regY = _memory[instruction[1] << 8 | instruction[2]];
+                case 0xAC:
+                    //Console.WriteLine("MOV Y,[" + instruction[1] + "+" + instruction[2] + "]");
+                    _regY = RAM.Memory[instruction[1] << 8 | instruction[2]];
                     processFlags(_regY, true, true);
+                    _regPC += 3;
                     break;
-                case "BC":
-                    Console.WriteLine("MOV Y,[" + instruction[1] + "+" + instruction[2] + "+X]");
-                    _regY = _memory[(instruction[1] << 8 | instruction[2]) + _regX];
+                case 0xBC:
+                    //Console.WriteLine("MOV Y,[" + instruction[1] + "+" + instruction[2] + "+X]");
+                    _regY = RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX];
                     processFlags(_regY, true, true);
+                    _regPC += 3;
                     break;
                 #endregion
                 #region Store Register in Memory
-                case "85":
-                    Console.WriteLine("MOV [" + instruction[1] + "], A");
-                    _memory[instruction[1]] = _regA;
+                case 0x85:
+                    //Console.WriteLine("MOV [" + instruction[1] + "], A");
+                    RAM.Memory[instruction[1]] = _regA;
+                    _regPC += 2;
                     break;
-                case "95":
-                    Console.WriteLine("MOV [" + instruction[1] + "+X], A");
-                    _memory[instruction[1] + _regX] = _regA;
+                case 0x95:
+                    //Console.WriteLine("MOV [" + instruction[1] + "+X], A");
+                    RAM.Memory[instruction[1] + _regX] = _regA;
+                    _regPC += 2;
                     break;
-                case "8D":
-                    Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] +"], A");
-                    _memory[(instruction[1] << 8 | instruction[2])] = _regA;
+                case 0x8D:
+                    //Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] +"], A");
+                    RAM.Memory[(instruction[1] << 8 | instruction[2])] = _regA;
+                    _regPC += 3;
                     break;
-                case "9D":
-                    Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] + "+X], A");
-                    _memory[(instruction[1] << 8 | instruction[2]) + _regX] = _regA;
+                case 0x9D:
+                    //Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] + "+X], A");
+                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] = _regA;
+                    _regPC += 3;
                     break;
-                case "99":
-                    Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] + "+Y], A");
-                    _memory[(instruction[1] << 8 | instruction[2]) + _regY] = _regA;
+                case 0x99:
+                    //Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] + "+Y], A");
+                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY] = _regA;
+                    _regPC += 3;
                     break;
-                case "81":
-                    Console.WriteLine("MOV [[" + instruction[1] + "+X]], A");
-                    _memory[_memory[instruction[1] + _regX]] = _regA;
+                case 0x81:
+                    //Console.WriteLine("MOV [[" + instruction[1] + "+X]], A");
+                    RAM.Memory[RAM.Memory[instruction[1] + _regX]] = _regA;
+                    _regPC += 2;
                     break;
-                case "91":
-                    Console.WriteLine("MOV [[" + instruction[1] + "]+Y], A");
-                    _memory[_memory[instruction[1]] + _regY] = _regA;
+                case 0x91:
+                    //Console.WriteLine("MOV [[" + instruction[1] + "]+Y], A");
+                    RAM.Memory[RAM.Memory[instruction[1]] + _regY] = _regA;
+                    _regPC += 2;
                     break;
-                case "86":
-                    Console.WriteLine("MOV [" + instruction[1] + "]], X");
-                    _memory[instruction[1]] = _regX;
+                case 0x86:
+                    //Console.WriteLine("MOV [" + instruction[1] + "]], X");
+                    RAM.Memory[instruction[1]] = _regX;
+                    _regPC += 2;
                     break;
-                case "96":
-                    Console.WriteLine("MOV [" + instruction[1] + "]+Y], X");
-                    _memory[instruction[1]+_regY] = _regX;
+                case 0x96:
+                    //Console.WriteLine("MOV [" + instruction[1] + "]+Y], X");
+                    RAM.Memory[instruction[1]+_regY] = _regX;
+                    _regPC += 2;
                     break;
-                case "8E":
-                    Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] + "], X");
-                    _memory[instruction[1] << 8 | instruction[2]] = _regX;
+                case 0x8E:
+                    //Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] + "], X");
+                    RAM.Memory[instruction[1] << 8 | instruction[2]] = _regX;
+                    _regPC += 3;
                     break;
-                case "84":
-                    Console.WriteLine("MOV [" + instruction[1] + "], Y");
-                    _memory[instruction[1] ] = _regY;
+                case 0x84:
+                    //Console.WriteLine("MOV [" + instruction[1] + "], Y");
+                    RAM.Memory[instruction[1] ] = _regY;
+                    _regPC += 2;
                     break;
-                case "94":
-                    Console.WriteLine("MOV [" + instruction[1] + "+X], Y");
-                    _memory[instruction[1] + _regX] = _regY;
+                case 0x94:
+                    //Console.WriteLine("MOV [" + instruction[1] + "+X], Y");
+                    RAM.Memory[instruction[1] + _regX] = _regY;
+                    _regPC += 2;
                     break;
-                case "8C":
-                    Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] + "], Y");
-                    _memory[instruction[1] << 8 | instruction[2]] = _regY;
+                case 0x8C:
+                    //Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] + "], Y");
+                    RAM.Memory[instruction[1] << 8 | instruction[2]] = _regY;
+                    _regPC += 3;
                     break;
                 #endregion
                 #region Push/Pull
-                case "48":
-                    Console.WriteLine("PUSH A");
-                    _memory[(byte)(_regS + 0x100)] = _regA;
+                case 0x48:
+                    //Console.WriteLine("PUSH A");
+                    RAM.Memory[(byte)(_regS + 0x100)] = _regA;
                     _regS = (byte)(_regS - 1);
+                    _regPC += 1;
                     break;
-                case "08":
-                    Console.WriteLine("PUSH P");
-                    _memory[_regS + 0x100] = _regP;
+                case 0x08:
+                    //Console.WriteLine("PUSH P");
+                    RAM.Memory[_regS + 0x100] = _regP;
                     _regS = (byte)(_regS - 1);
                     _flagB = true;
+                    _regPC += 1;
                     break;
-                case "68":
-                    Console.WriteLine("POP A");
+                case 0x68:
+                    //Console.WriteLine("POP A");
                     _regS = (byte)(_regS + 1);
-                    _regA = _memory[_regS + 0x100];
+                    _regA = RAM.Memory[_regS + 0x100];
                     if (_regA == 0)
                         _flagZ = true;
                     else
                         _flagZ = false;
                     _flagN = (_regA & (1 << 7)) != 0;
+                    _regPC += 1;
                     break;
-                case "28":
-                    Console.WriteLine("POP P");
+                case 0x28:
+                    //Console.WriteLine("POP P");
                     _regS = (byte)(_regS + 1);
-                    ByteToFlags(_memory[_regS + 0x100]);
+                    ByteToFlags(RAM.Memory[_regS + 0x100]);
+                    _regPC += 1;
                     break;
                 #endregion
                 #region Add memory to accumulator with carry
-                case "69":
-                    Console.WriteLine("ADC A," + instruction[1]);
+                case 0x69:
+                    //Console.WriteLine("ADC A," + instruction[1]);
                     regBuffer = _regA;
                     _regA = (byte)(_regA + instruction[1] + Convert.ToByte(_flagC));
                     processFlags(_regA, true, true);
                     processAddFlags(regBuffer, instruction[1], _regA);
+                    _regPC += 2;
                     break;
-                case "65":
-                    Console.WriteLine("ADC A,[" + _memory[instruction[1]] + "]");
+                case 0x65:
+                    //Console.WriteLine("ADC A,[" + RAM.Memory[instruction[1]] + "]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA + _memory[instruction[1]] + Convert.ToByte(_flagC));
+                    _regA = (byte)(_regA + RAM.Memory[instruction[1]] + Convert.ToByte(_flagC));
                     processFlags(_regA, true, true);
-                    processAddFlags(regBuffer, _memory[instruction[1]], _regA);
+                    processAddFlags(regBuffer, RAM.Memory[instruction[1]], _regA);
+                    _regPC += 2;
                     break;
-                case "75":
-                    Console.WriteLine("ADC A,[" + _memory[instruction[1]] + "+X]");
+                case 0x75:
+                    //Console.WriteLine("ADC A,[" + RAM.Memory[instruction[1]] + "+X]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA + _memory[instruction[1] + _regX] + Convert.ToByte(_flagC));
+                    _regA = (byte)(_regA + RAM.Memory[instruction[1] + _regX] + Convert.ToByte(_flagC));
                     processFlags(_regA, true, true);
-                    processAddFlags(regBuffer, _memory[instruction[1] + _regX], _regA);
+                    processAddFlags(regBuffer, RAM.Memory[instruction[1] + _regX], _regA);
+                    _regPC += 2;
                     break;
-                case "6D":
-                    Console.WriteLine("ADC A,[" + _memory[instruction[1]] + "+" + _memory[instruction[2]] + "]");
+                case 0x6D:
+                    //Console.WriteLine("ADC A,[" + RAM.Memory[instruction[1]] + "+" + RAM.Memory[instruction[2]] + "]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA + _memory[(instruction[1] << 8 | instruction[2])] + Convert.ToByte(_flagC));
+                    _regA = (byte)(_regA + RAM.Memory[(instruction[1] << 8 | instruction[2])] + Convert.ToByte(_flagC));
                     processFlags(_regA, true, true);
-                    processAddFlags(regBuffer, _memory[(instruction[1] << 8 | instruction[2])], _regA);
+                    processAddFlags(regBuffer, RAM.Memory[(instruction[1] << 8 | instruction[2])], _regA);
+                    _regPC += 3;
                     break;
-                case "7D":
-                    Console.WriteLine("ADC A,[" + _memory[instruction[1]] + "+" + _memory[instruction[2]] + "+X]");
+                case 0x7D:
+                    //Console.WriteLine("ADC A,[" + RAM.Memory[instruction[1]] + "+" + RAM.Memory[instruction[2]] + "+X]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA + _memory[(instruction[1] << 8 | instruction[2]) + _regX] + Convert.ToByte(_flagC));
+                    _regA = (byte)(_regA + RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] + Convert.ToByte(_flagC));
                     processFlags(_regA, true, true);
-                    processAddFlags(regBuffer, _memory[(instruction[1] << 8 | instruction[2]) + _regX], _regA);
+                    processAddFlags(regBuffer, RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], _regA);
+                    _regPC += 3;
                     break;
-                case "79":
-                    Console.WriteLine("ADC A,[" + _memory[instruction[1]] + "+" + _memory[instruction[2]] + "+Y]");
+                case 0x79:
+                    //Console.WriteLine("ADC A,[" + RAM.Memory[instruction[1]] + "+" + RAM.Memory[instruction[2]] + "+Y]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA + _memory[(instruction[1] << 8 | instruction[2]) + _regY] + Convert.ToByte(_flagC));
+                    _regA = (byte)(_regA + RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY] + Convert.ToByte(_flagC));
                     processFlags(_regA, true, true);
-                    processAddFlags(regBuffer, _memory[(instruction[1] << 8 | instruction[2]) + _regY], _regA);
+                    processAddFlags(regBuffer, RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY], _regA);
+                    _regPC += 3;
                     break;
-                case "61":
-                    Console.WriteLine("ADC A,[[" + _memory[instruction[1]] + "+X]]");
+                case 0x61:
+                    //Console.WriteLine("ADC A,[[" + RAM.Memory[instruction[1]] + "+X]]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA + _memory[_memory[instruction[1] + _regX]] + Convert.ToByte(_flagC));
+                    _regA = (byte)(_regA + RAM.Memory[RAM.Memory[instruction[1] + _regX]] + Convert.ToByte(_flagC));
                     processFlags(_regA, true, true);
-                    processAddFlags(regBuffer, _memory[_memory[instruction[1] + _regX]], _regA);
+                    processAddFlags(regBuffer, RAM.Memory[RAM.Memory[instruction[1] + _regX]], _regA);
+                    _regPC += 2;
                     break;
-                case "71":
-                    Console.WriteLine("ADC A,[[" + _memory[instruction[1]] + "]+Y]");
+                case 0x71:
+                    //Console.WriteLine("ADC A,[[" + RAM.Memory[instruction[1]] + "]+Y]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA + _memory[_memory[instruction[1]] + _regY] + Convert.ToByte(_flagC));
+                    _regA = (byte)(_regA + RAM.Memory[RAM.Memory[instruction[1]] + _regY] + Convert.ToByte(_flagC));
                     processFlags(_regA, true, true);
-                    processAddFlags(regBuffer, _memory[_memory[instruction[1]] + _regY], _regA);
+                    processAddFlags(regBuffer, RAM.Memory[RAM.Memory[instruction[1]] + _regY], _regA);
+                    _regPC += 2;
                     break;
 
                 #endregion
                 #region Subtract memory from accumulator with carry
-                case "E9":
-                    Console.WriteLine("SBC A," + instruction[1]);
+                case 0xE9:
+                    //Console.WriteLine("SBC A," + instruction[1]);
                     regBuffer = _regA;
                     _regA = (byte)(_regA - instruction[1] + Convert.ToByte(_flagC) - 1);
                     processFlags(_regA, true, true);
                     processSubtractFlags(regBuffer, instruction[1], _regA);
+                    _regPC += 2;
                     break;
-                case "E5":
-                    Console.WriteLine("SBC A,[" + _memory[instruction[1]] + "]");
+                case 0xE5:
+                    //Console.WriteLine("SBC A,[" + RAM.Memory[instruction[1]] + "]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA - _memory[instruction[1]] + Convert.ToByte(_flagC) -1);
+                    _regA = (byte)(_regA - RAM.Memory[instruction[1]] + Convert.ToByte(_flagC) -1);
                     processFlags(_regA, true, true);
-                    processSubtractFlags(regBuffer, _memory[instruction[1]], _regA);
+                    processSubtractFlags(regBuffer, RAM.Memory[instruction[1]], _regA);
+                    _regPC += 2;
                     break;
-                case "F5":
-                    Console.WriteLine("SBC A,[" + _memory[instruction[1]] + "+X]");
+                case 0xF5:
+                    //Console.WriteLine("SBC A,[" + RAM.Memory[instruction[1]] + "+X]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA - _memory[instruction[1] + _regX] + Convert.ToByte(_flagC) -1);
+                    _regA = (byte)(_regA - RAM.Memory[instruction[1] + _regX] + Convert.ToByte(_flagC) -1);
                     processFlags(_regA, true, true);
-                    processSubtractFlags(regBuffer, _memory[instruction[1] + _regX], _regA);
+                    processSubtractFlags(regBuffer, RAM.Memory[instruction[1] + _regX], _regA);
+                    _regPC += 2;
                     break;
-                case "ED":
-                    Console.WriteLine("SBC A,[" + _memory[instruction[1]] + "+" + _memory[instruction[2]] + "]");
+                case 0xED:
+                    //Console.WriteLine("SBC A,[" + RAM.Memory[instruction[1]] + "+" + RAM.Memory[instruction[2]] + "]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA - _memory[(instruction[1] << 8 | instruction[2])] + Convert.ToByte(_flagC) -1);
+                    _regA = (byte)(_regA - RAM.Memory[(instruction[1] << 8 | instruction[2])] + Convert.ToByte(_flagC) -1);
                     processFlags(_regA, true, true);
-                    processSubtractFlags(regBuffer, _memory[(instruction[1] << 8 | instruction[2])], _regA);
+                    processSubtractFlags(regBuffer, RAM.Memory[(instruction[1] << 8 | instruction[2])], _regA);
+                    _regPC += 3;
                     break;
-                case "FD":
-                    Console.WriteLine("SBC A,[" + _memory[instruction[1]] + "+" + _memory[instruction[2]] + "+X]");
+                case 0xFD:
+                    //Console.WriteLine("SBC A,[" + RAM.Memory[instruction[1]] + "+" + RAM.Memory[instruction[2]] + "+X]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA - _memory[(instruction[1] << 8 | instruction[2]) + _regX] + Convert.ToByte(_flagC) -1);
+                    _regA = (byte)(_regA - RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] + Convert.ToByte(_flagC) -1);
                     processFlags(_regA, true, true);
-                    processSubtractFlags(regBuffer, _memory[(instruction[1] << 8 | instruction[2]) + _regX], _regA);
+                    processSubtractFlags(regBuffer, RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], _regA);
+                    _regPC += 3;
                     break;
-                case "F9":
-                    Console.WriteLine("SBC A,[" + _memory[instruction[1]] + "+" + _memory[instruction[2]] + "+Y]");
+                case 0xF9:
+                    //Console.WriteLine("SBC A,[" + RAM.Memory[instruction[1]] + "+" + RAM.Memory[instruction[2]] + "+Y]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA - _memory[(instruction[1] << 8 | instruction[2]) + _regY] + Convert.ToByte(_flagC) -1);
+                    _regA = (byte)(_regA - RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY] + Convert.ToByte(_flagC) -1);
                     processFlags(_regA, true, true);
-                    processSubtractFlags(regBuffer, _memory[(instruction[1] << 8 | instruction[2]) + _regY], _regA);
+                    processSubtractFlags(regBuffer, RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY], _regA);
+                    _regPC += 3;
                     break;
-                case "E1":
-                    Console.WriteLine("SBC A,[[" + _memory[instruction[1]] + "+X]]");
+                case 0xE1:
+                    //Console.WriteLine("SBC A,[[" + RAM.Memory[instruction[1]] + "+X]]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA - _memory[_memory[instruction[1] + _regX]] + Convert.ToByte(_flagC) - 1);
+                    _regA = (byte)(_regA - RAM.Memory[RAM.Memory[instruction[1] + _regX]] + Convert.ToByte(_flagC) - 1);
                     processFlags(_regA, true, true);
-                    processSubtractFlags(regBuffer, _memory[_memory[instruction[1] + _regX]], _regA);
+                    processSubtractFlags(regBuffer, RAM.Memory[RAM.Memory[instruction[1] + _regX]], _regA);
+                    _regPC += 2;
                     break;
-                case "F1":
-                    Console.WriteLine("SBC A,[[" + _memory[instruction[1]] + "]+Y]");
+                case 0xF1:
+                    //Console.WriteLine("SBC A,[[" + RAM.Memory[instruction[1]] + "]+Y]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA - _memory[_memory[instruction[1]] + _regY] + Convert.ToByte(_flagC) - 1);
+                    _regA = (byte)(_regA - RAM.Memory[RAM.Memory[instruction[1]] + _regY] + Convert.ToByte(_flagC) - 1);
                     processFlags(_regA, true, true);
-                    processSubtractFlags(regBuffer, _memory[_memory[instruction[1]] + _regY], _regA);
+                    processSubtractFlags(regBuffer, RAM.Memory[RAM.Memory[instruction[1]] + _regY], _regA);
+                    _regPC += 2;
                     break;
 
                 #endregion
                 #region Logical AND memory with accumulator
-                case "29":
-                    Console.WriteLine("AND A,"+instruction[1]);
+                case 0x29:
+                    //Console.WriteLine("AND A,"+instruction[1]);
                     _regA = (byte)(_regA & instruction[1]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "25":
-                    Console.WriteLine("AND A,[" + instruction[1]+"]");
-                    _regA = (byte)(_regA & _memory[instruction[1]]);
+                case 0x25:
+                    //Console.WriteLine("AND A,[" + instruction[1]+"]");
+                    _regA = (byte)(_regA & RAM.Memory[instruction[1]]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "35":
-                    Console.WriteLine("AND A,[" + instruction[1] + "+X]");
-                    _regA = (byte)(_regA & _memory[instruction[1] + _regX]);
+                case 0x35:
+                    //Console.WriteLine("AND A,[" + instruction[1] + "+X]");
+                    _regA = (byte)(_regA & RAM.Memory[instruction[1] + _regX]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "2D":
-                    Console.WriteLine("AND A,[" + instruction[1] + "+" + instruction[2] + "]");
-                    _regA = (byte)(_regA & _memory[(instruction[1] << 8 | instruction[2])]);
+                case 0x2D:
+                    //Console.WriteLine("AND A,[" + instruction[1] + "+" + instruction[2] + "]");
+                    _regA = (byte)(_regA & RAM.Memory[(instruction[1] << 8 | instruction[2])]);
                     processFlags(_regA, true, true);
+                    _regPC += 3;
                     break;
-                case "3D":
-                    Console.WriteLine("AND A,[" + instruction[1] + "+" + instruction[2] + " +X]");
-                    _regA = (byte)(_regA & _memory[(instruction[1] << 8 | instruction[2]) + _regX]);
+                case 0x3D:
+                    //Console.WriteLine("AND A,[" + instruction[1] + "+" + instruction[2] + " +X]");
+                    _regA = (byte)(_regA & RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX]);
                     processFlags(_regA, true, true);
+                    _regPC += 3;
                     break;
-                case "39":
-                    Console.WriteLine("AND A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
-                    _regA = (byte)(_regA & _memory[(instruction[1] << 8 | instruction[2]) + _regY]);
+                case 0x39:
+                    //Console.WriteLine("AND A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
+                    _regA = (byte)(_regA & RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY]);
                     processFlags(_regA, true, true);
+                    _regPC += 3;
                     break;
-                case "21":
-                    Console.WriteLine("AND A,[[" + instruction[1] + "+X]]");
-                    _regA = (byte)(_regA & _memory[_memory[instruction[1] + _regX]]);
+                case 0x21:
+                    //Console.WriteLine("AND A,[[" + instruction[1] + "+X]]");
+                    _regA = (byte)(_regA & RAM.Memory[RAM.Memory[instruction[1] + _regX]]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "31":
-                    Console.WriteLine("AND A,[[" + instruction[1] + "]+Y]");
-                    _regA = (byte)(_regA & _memory[_memory[instruction[1]] + _regY]);
+                case 0x31:
+                    //Console.WriteLine("AND A,[[" + instruction[1] + "]+Y]");
+                    _regA = (byte)(_regA & RAM.Memory[RAM.Memory[instruction[1]] + _regY]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
                 #endregion
                 #region Logical XOR memory with accumulator
-                case "49":
-                    Console.WriteLine("XOR A," + instruction[1]);
+                case 0x49:
+                    //Console.WriteLine("XOR A," + instruction[1]);
                     _regA = (byte)(_regA ^ instruction[1]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "45":
-                    Console.WriteLine("XOR A,[" + instruction[1] + "]");
-                    _regA = (byte)(_regA ^ _memory[instruction[1]]);
+                case 0x45:
+                    //Console.WriteLine("XOR A,[" + instruction[1] + "]");
+                    _regA = (byte)(_regA ^ RAM.Memory[instruction[1]]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "55":
-                    Console.WriteLine("XOR A,[" + instruction[1] + "+X]");
-                    _regA = (byte)(_regA ^ _memory[instruction[1] + _regX]);
+                case 0x55:
+                    //Console.WriteLine("XOR A,[" + instruction[1] + "+X]");
+                    _regA = (byte)(_regA ^ RAM.Memory[instruction[1] + _regX]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "4D":
-                    Console.WriteLine("XOR A,[" + instruction[1] + "+" + instruction[2] + "]");
-                    _regA = (byte)(_regA ^ _memory[(instruction[1] << 8 | instruction[2])]);
+                case 0x4D:
+                    //Console.WriteLine("XOR A,[" + instruction[1] + "+" + instruction[2] + "]");
+                    _regA = (byte)(_regA ^ RAM.Memory[(instruction[1] << 8 | instruction[2])]);
                     processFlags(_regA, true, true);
+                    _regPC += 3;
                     break;
-                case "5D":
-                    Console.WriteLine("XOR A,[" + instruction[1] + "+" + instruction[2] + " +X]");
-                    _regA = (byte)(_regA ^ _memory[(instruction[1] << 8 | instruction[2]) + _regX]);
+                case 0x5D:
+                    //Console.WriteLine("XOR A,[" + instruction[1] + "+" + instruction[2] + " +X]");
+                    _regA = (byte)(_regA ^ RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX]);
                     processFlags(_regA, true, true);
+                    _regPC += 3;
                     break;
-                case "59":
-                    Console.WriteLine("XOR A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
-                    _regA = (byte)(_regA ^ _memory[(instruction[1] << 8 | instruction[2]) + _regY]);
+                case 0x59:
+                    //Console.WriteLine("XOR A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
+                    _regA = (byte)(_regA ^ RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY]);
                     processFlags(_regA, true, true);
+                    _regPC += 3;
                     break;
-                case "41":
-                    Console.WriteLine("XOR A,[[" + instruction[1] + "+X]]");
-                    _regA = (byte)(_regA ^ _memory[_memory[instruction[1] + _regX]]);
+                case 0x41:
+                    //Console.WriteLine("XOR A,[[" + instruction[1] + "+X]]");
+                    _regA = (byte)(_regA ^ RAM.Memory[RAM.Memory[instruction[1] + _regX]]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "51":
-                    Console.WriteLine("XOR A,[[" + instruction[1] + "]+Y]");
-                    _regA = (byte)(_regA ^ _memory[_memory[instruction[1]] + _regY]);
+                case 0x51:
+                    //Console.WriteLine("XOR A,[[" + instruction[1] + "]+Y]");
+                    _regA = (byte)(_regA ^ RAM.Memory[RAM.Memory[instruction[1]] + _regY]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
                 #endregion
                 #region Logical OR memory with accumulator
-                case "09":
-                    Console.WriteLine("OR A," + instruction[1]);
+                case 0x09:
+                    //Console.WriteLine("OR A," + instruction[1]);
                     _regA = (byte)(_regA | instruction[1]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "05":
-                    Console.WriteLine("OR A,[" + instruction[1] + "]");
-                    _regA = (byte)(_regA | _memory[instruction[1]]);
+                case 0x05:
+                    //Console.WriteLine("OR A,[" + instruction[1] + "]");
+                    _regA = (byte)(_regA | RAM.Memory[instruction[1]]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "15":
-                    Console.WriteLine("OR A,[" + instruction[1] + "+X]");
-                    _regA = (byte)(_regA | _memory[instruction[1] + _regX]);
+                case 0x15:
+                    //Console.WriteLine("OR A,[" + instruction[1] + "+X]");
+                    _regA = (byte)(_regA | RAM.Memory[instruction[1] + _regX]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "0D":
-                    Console.WriteLine("OR A,[" + instruction[1] + "+" + instruction[2] + "]");
-                    _regA = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2])]);
+                case 0x0D:
+                    //Console.WriteLine("OR A,[" + instruction[1] + "+" + instruction[2] + "]");
+                    _regA = (byte)(_regA | RAM.Memory[(instruction[1] << 8 | instruction[2])]);
                     processFlags(_regA, true, true);
+                    _regPC += 3;
                     break;
-                case "1D":
-                    Console.WriteLine("OR A,[" + instruction[1] + "+" + instruction[2] + " +X]");
-                    _regA = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2]) + _regX]);
+                case 0x1D:
+                    //Console.WriteLine("OR A,[" + instruction[1] + "+" + instruction[2] + " +X]");
+                    _regA = (byte)(_regA | RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX]);
                     processFlags(_regA, true, true);
+                    _regPC += 3;
                     break;
-                case "19":
-                    Console.WriteLine("OR A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
-                    _regA = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2]) + _regY]);
+                case 0x19:
+                    //Console.WriteLine("OR A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
+                    _regA = (byte)(_regA | RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY]);
                     processFlags(_regA, true, true);
+                    _regPC += 3;
                     break;
-                case "01":
-                    Console.WriteLine("OR A,[[" + instruction[1] + "+X]]");
-                    _regA = (byte)(_regA | _memory[_memory[instruction[1] + _regX]]);
+                case 0x01:
+                    //Console.WriteLine("OR A,[[" + instruction[1] + "+X]]");
+                    _regA = (byte)(_regA | RAM.Memory[RAM.Memory[instruction[1] + _regX]]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
-                case "11":
-                    Console.WriteLine("OR A,[[" + instruction[1] + "]+Y]");
-                    _regA = (byte)(_regA | _memory[_memory[instruction[1]] + _regY]);
+                case 0x11:
+                    //Console.WriteLine("OR A,[[" + instruction[1] + "]+Y]");
+                    _regA = (byte)(_regA | RAM.Memory[RAM.Memory[instruction[1]] + _regY]);
                     processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
                 #endregion
                 #region Compare
-                case "C9":
-                    Console.WriteLine("CMP A," + instruction[1]);
+                case 0xC9:
+                    //Console.WriteLine("CMP A," + instruction[1]);
                     regBuffer = (byte)(_regA - instruction[1]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 2;
                     break;
-                case "C5":
-                    Console.WriteLine("CMP A,[" + instruction[1] + "]");
-                    regBuffer = (byte)(_regA | _memory[instruction[1]]);
+                case 0xC5:
+                    //Console.WriteLine("CMP A,[" + instruction[1] + "]");
+                    regBuffer = (byte)(_regA | RAM.Memory[instruction[1]]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 2;
                     break;
-                case "D5":
-                    Console.WriteLine("CMP A,[" + instruction[1] + "+X]");
-                    regBuffer = (byte)(_regA | _memory[instruction[1] + _regX]);
+                case 0xD5:
+                    //Console.WriteLine("CMP A,[" + instruction[1] + "+X]");
+                    regBuffer = (byte)(_regA | RAM.Memory[instruction[1] + _regX]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 2;
                     break;
-                case "CD":
-                    Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + "]");
-                    regBuffer = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2])]);
+                case 0xCD:
+                    //Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + "]");
+                    regBuffer = (byte)(_regA | RAM.Memory[(instruction[1] << 8 | instruction[2])]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 3;
                     break;
-                case "DD":
-                    Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + " +X]");
-                    regBuffer = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2]) + _regX]);
+                case 0xDD:
+                    //Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + " +X]");
+                    regBuffer = (byte)(_regA | RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 3;
                     break;
-                case "D9":
-                    Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
-                    regBuffer = (byte)(_regA | _memory[(instruction[1] << 8 | instruction[2]) + _regY]);
+                case 0xD9:
+                    //Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
+                    regBuffer = (byte)(_regA | RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 3;
                     break;
-                case "C1":
-                    Console.WriteLine("CMP A,[[" + instruction[1] + "+X]]");
-                    regBuffer = (byte)(_regA | _memory[_memory[instruction[1] + _regX]]);
+                case 0xC1:
+                    //Console.WriteLine("CMP A,[[" + instruction[1] + "+X]]");
+                    regBuffer = (byte)(_regA | RAM.Memory[RAM.Memory[instruction[1] + _regX]]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 2;
                     break;
-                case "D1":
-                    Console.WriteLine("CMP A,[[" + instruction[1] + "]+Y]");
-                    regBuffer = (byte)(_regA | _memory[_memory[instruction[1]] + _regY]);
+                case 0xD1:
+                    //Console.WriteLine("CMP A,[[" + instruction[1] + "]+Y]");
+                    regBuffer = (byte)(_regA | RAM.Memory[RAM.Memory[instruction[1]] + _regY]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 2;
                     break;
-                case "E0":
-                    Console.WriteLine("CMP X," + instruction[1]);
+                case 0xE0:
+                    //Console.WriteLine("CMP X," + instruction[1]);
                     regBuffer = (byte)(_regX - instruction[1]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 2;
                     break;
-                case "E4":
-                    Console.WriteLine("CMP X,[" + instruction[1] + "]");
-                    regBuffer = (byte)(_regX | _memory[instruction[1]]);
+                case 0xE4:
+                    //Console.WriteLine("CMP X,[" + instruction[1] + "]");
+                    regBuffer = (byte)(_regX | RAM.Memory[instruction[1]]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 2;
                     break;
-                case "EC":
-                    Console.WriteLine("CMP X,[" + instruction[1] + "+" + instruction[2] + "]");
-                    regBuffer = (byte)(_regX | _memory[(instruction[1] << 8 | instruction[2])]);
+                case 0xEC:
+                    //Console.WriteLine("CMP X,[" + instruction[1] + "+" + instruction[2] + "]");
+                    regBuffer = (byte)(_regX | RAM.Memory[(instruction[1] << 8 | instruction[2])]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 3;
                     break;
-                case "C0":
-                    Console.WriteLine("CMP Y," + instruction[1]);
+                case 0xC0:
+                    //Console.WriteLine("CMP Y," + instruction[1]);
                     regBuffer = (byte)(_regY - instruction[1]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 2;
                     break;
-                case "C4":
-                    Console.WriteLine("CMP Y,[" + instruction[1] + "]");
-                    regBuffer = (byte)(_regY | _memory[instruction[1]]);
+                case 0xC4:
+                    //Console.WriteLine("CMP Y,[" + instruction[1] + "]");
+                    regBuffer = (byte)(_regY | RAM.Memory[instruction[1]]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 2;
                     break;
-                case "CC":
-                    Console.WriteLine("CMP Y,[" + instruction[1] + "+" + instruction[2] + "]");
-                    regBuffer = (byte)(_regY | _memory[(instruction[1] << 8 | instruction[2])]);
+                case 0xCC:
+                    //Console.WriteLine("CMP Y,[" + instruction[1] + "+" + instruction[2] + "]");
+                    regBuffer = (byte)(_regY | RAM.Memory[(instruction[1] << 8 | instruction[2])]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 3;
                     break;
                 #endregion
                 #region Increment
-                case "E6":
-                    Console.WriteLine("INC [" + instruction[1] + "]");
-                    _memory[instruction[1]] = (byte)(_memory[instruction[1]] + 1);
-                    processFlags(_memory[instruction[1]], true, true);
+                case 0xE6:
+                    //Console.WriteLine("INC [" + instruction[1] + "]");
+                    RAM.Memory[instruction[1]] = (byte)(RAM.Memory[instruction[1]] + 1);
+                    processFlags(RAM.Memory[instruction[1]], true, true);
+                    _regPC += 2;
                     break;
-                case "F6":
-                    Console.WriteLine("INC [" + instruction[1] + "+X]");
-                    _memory[instruction[1] + _regX] = (byte)(_memory[instruction[1] + _regX] + 1);
-                    processFlags(_memory[instruction[1] + _regX], true, true);
+                case 0xF6:
+                    //Console.WriteLine("INC [" + instruction[1] + "+X]");
+                    RAM.Memory[instruction[1] + _regX] = (byte)(RAM.Memory[instruction[1] + _regX] + 1);
+                    processFlags(RAM.Memory[instruction[1] + _regX], true, true);
+                    _regPC += 2;
                     break;
-                case "EE":
-                    Console.WriteLine("INC [" + instruction[1] + "+" + instruction[2] + "]");
-                    _memory[(instruction[1] << 8 | instruction[2])] = (byte)(_memory[(instruction[1] << 8 | instruction[2])] + 1);
+                case 0xEE:
+                    //Console.WriteLine("INC [" + instruction[1] + "+" + instruction[2] + "]");
+                    RAM.Memory[(instruction[1] << 8 | instruction[2])] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2])] + 1);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 3;
                     break;
-                case "FE":
-                    Console.WriteLine("INC [" + instruction[1] + "+" + instruction[2] + "] + X");
-                    _memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(_memory[(instruction[1] << 8 | instruction[2]) + _regX] + 1);
-                    processFlags(_memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                case 0xFE:
+                    //Console.WriteLine("INC [" + instruction[1] + "+" + instruction[2] + "] + X");
+                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] + 1);
+                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    _regPC += 3;
                     break;
-                case "E8":
-                    Console.WriteLine("INC X");
+                case 0xE8:
+                    //Console.WriteLine("INC X");
                     _regX = (byte)(_regX + 1);
                     processFlags(_regX, true, true);
+                    _regPC += 1;
                     break;
-                case "C8":
-                    Console.WriteLine("INC Y");
+                case 0xC8:
+                    //Console.WriteLine("INC Y");
                     _regY = (byte)(_regY + 1);
                     processFlags(_regY, true, true);
+                    _regPC += 1;
                     break;
                 #endregion
                 #region Decrement
-                case "C6":
-                    Console.WriteLine("DEC [" + instruction[1] + "]");
-                    _memory[instruction[1]] = (byte)(_memory[instruction[1]] - 1);
-                    processFlags(_memory[instruction[1]], true, true);
+                case 0xC6:
+                    //Console.WriteLine("DEC [" + instruction[1] + "]");
+                    RAM.Memory[instruction[1]] = (byte)(RAM.Memory[instruction[1]] - 1);
+                    processFlags(RAM.Memory[instruction[1]], true, true);
+                    _regPC += 2;
                     break;
-                case "D6":
-                    Console.WriteLine("DEC [" + instruction[1] + "+X]");
-                    _memory[instruction[1] + _regX] = (byte)(_memory[instruction[1] + _regX] - 1);
-                    processFlags(_memory[instruction[1] + _regX], true, true);
+                case 0xD6:
+                    //Console.WriteLine("DEC [" + instruction[1] + "+X]");
+                    RAM.Memory[instruction[1] + _regX] = (byte)(RAM.Memory[instruction[1] + _regX] - 1);
+                    processFlags(RAM.Memory[instruction[1] + _regX], true, true);
+                    _regPC += 2;
                     break;
-                case "CE":
-                    Console.WriteLine("DEC [" + instruction[1] + "+" + instruction[2] + "]");
-                    _memory[(instruction[1] << 8 | instruction[2])] = (byte)(_memory[(instruction[1] << 8 | instruction[2])] - 1);
+                case 0xCE:
+                    //Console.WriteLine("DEC [" + instruction[1] + "+" + instruction[2] + "]");
+                    RAM.Memory[(instruction[1] << 8 | instruction[2])] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2])] - 1);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
+                    _regPC += 3;
                     break;
-                case "DE":
-                    Console.WriteLine("DEC [" + instruction[1] + "+" + instruction[2] + "] + X");
-                    _memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(_memory[(instruction[1] << 8 | instruction[2]) + _regX] - 1);
-                    processFlags(_memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                case 0xDE:
+                    //Console.WriteLine("DEC [" + instruction[1] + "+" + instruction[2] + "] + X");
+                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] - 1);
+                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    _regPC += 3;
                     break;
-                case "CA":
-                    Console.WriteLine("DEC X");
+                case 0xCA:
+                    //Console.WriteLine("DEC X");
                     _regX = (byte)(_regX - 1);
                     processFlags(_regX, true, true);
+                    _regPC += 1;
                     break;
-                case "88":
-                    Console.WriteLine("DEC Y");
+                case 0x88:
+                    //Console.WriteLine("DEC Y");
                     _regY = (byte)(_regY - 1);
                     processFlags(_regY, true, true);
+                    _regPC += 1;
                     break;
                 #endregion
                 #region Shift Left Logical/Arithmetic
-                case "0A":
-                    Console.WriteLine("SHL A");
+                case 0x0A:
+                    //Console.WriteLine("SHL A");
                     _flagC = Convert.ToString(_regA, 2).PadLeft(8, '0')[0] == 1;
                     _regA = (byte)(_regA << 1);
                     processFlags(_regA, true, true);
+                    _regPC += 1;
                     break;
-                case "06":
-                    Console.WriteLine("SHL [" + instruction[1] + "]");
-                    _flagC = Convert.ToString(_memory[instruction[1]], 2).PadLeft(8, '0')[0] == 1;
-                    _memory[instruction[1]] = (byte)(_memory[instruction[1]] << 1);
-                    processFlags(_memory[instruction[1]], true, true);
+                case 0x06:
+                    //Console.WriteLine("SHL [" + instruction[1] + "]");
+                    _flagC = Convert.ToString(RAM.Memory[instruction[1]], 2).PadLeft(8, '0')[0] == 1;
+                    RAM.Memory[instruction[1]] = (byte)(RAM.Memory[instruction[1]] << 1);
+                    processFlags(RAM.Memory[instruction[1]], true, true);
+                    _regPC += 2;
                     break;
-                case "16":
-                    Console.WriteLine("SHL [" + instruction[1] + " + X]");
-                    _flagC = Convert.ToString(_memory[instruction[1] + _regX], 2).PadLeft(8, '0')[0] == 1;
-                    _memory[instruction[1] + _regX] = (byte)(_memory[instruction[1] + _regX] << 1);
-                    processFlags(_memory[instruction[1] + _regX], true, true);
+                case 0x16:
+                    //Console.WriteLine("SHL [" + instruction[1] + " + X]");
+                    _flagC = Convert.ToString(RAM.Memory[instruction[1] + _regX], 2).PadLeft(8, '0')[0] == 1;
+                    RAM.Memory[instruction[1] + _regX] = (byte)(RAM.Memory[instruction[1] + _regX] << 1);
+                    processFlags(RAM.Memory[instruction[1] + _regX], true, true);
+                    _regPC += 2;
                     break;
-                case "0E":
-                    Console.WriteLine("SHL [" + instruction[1] + instruction[2] + "]");
-                    _flagC = Convert.ToString(_memory[(instruction[1] << 8 | instruction[2])], 2).PadLeft(8, '0')[0] == 1;
-                    _memory[(instruction[1] << 8 | instruction[2])] = (byte)(_memory[(instruction[1] << 8 | instruction[2])] << 1);
-                    processFlags(_memory[(instruction[1] << 8 | instruction[2])], true, true);
+                case 0x0E:
+                    //Console.WriteLine("SHL [" + instruction[1] + instruction[2] + "]");
+                    _flagC = Convert.ToString(RAM.Memory[(instruction[1] << 8 | instruction[2])], 2).PadLeft(8, '0')[0] == 1;
+                    RAM.Memory[(instruction[1] << 8 | instruction[2])] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2])] << 1);
+                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2])], true, true);
                     break;
-                case "1E":
-                    Console.WriteLine("SHL [" + instruction[1] + instruction[2] + " + X]");
-                    _flagC = Convert.ToString(_memory[(instruction[1] << 8 | instruction[2]) + _regX], 2).PadLeft(8, '0')[0] == 1;
-                    _memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(_memory[(instruction[1] << 8 | instruction[2])] << 1);
-                    processFlags(_memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                case 0x1E:
+                    //Console.WriteLine("SHL [" + instruction[1] + instruction[2] + " + X]");
+                    _flagC = Convert.ToString(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], 2).PadLeft(8, '0')[0] == 1;
+                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2])] << 1);
+                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    _regPC += 3;
                     break;
                 #endregion
                 #region Shift Right Logical/Arithmetic
-                case "4A":
-                    Console.WriteLine("SHR A");
+                case 0x4A:
+                    //Console.WriteLine("SHR A");
                     _flagC = false;
                     _regA = (byte)(_regA >> 1);
                     processFlags(_regA, true, true);
+                    _regPC += 1;
                     break;
-                case "46":
-                    Console.WriteLine("SHR [" + instruction[1] + "]");
+                case 0x46:
+                    //Console.WriteLine("SHR [" + instruction[1] + "]");
                     _flagC = false;
-                    _memory[instruction[1]] = (byte)(_memory[instruction[1]] >> 1);
-                    processFlags(_memory[instruction[1]], true, true);
+                    RAM.Memory[instruction[1]] = (byte)(RAM.Memory[instruction[1]] >> 1);
+                    processFlags(RAM.Memory[instruction[1]], true, true);
+                    _regPC += 2;
                     break;
-                case "56":
-                    Console.WriteLine("SHR [" + instruction[1] + " + X]");
+                case 0x56:
+                    //Console.WriteLine("SHR [" + instruction[1] + " + X]");
                     _flagC = false;
-                    _memory[instruction[1] + _regX] = (byte)(_memory[instruction[1] + _regX] >> 1);
-                    processFlags(_memory[instruction[1] + _regX], true, true);
+                    RAM.Memory[instruction[1] + _regX] = (byte)(RAM.Memory[instruction[1] + _regX] >> 1);
+                    processFlags(RAM.Memory[instruction[1] + _regX], true, true);
+                    _regPC += 2;
                     break;
-                case "4E":
-                    Console.WriteLine("SHR [" + instruction[1] + instruction[2] + "]");
+                case 0x4E:
+                    //Console.WriteLine("SHR [" + instruction[1] + instruction[2] + "]");
                     _flagC = false;
-                    _memory[(instruction[1] << 8 | instruction[2])] = (byte)(_memory[(instruction[1] << 8 | instruction[2])] >> 1);
-                    processFlags(_memory[(instruction[1] << 8 | instruction[2])], true, true);
+                    RAM.Memory[(instruction[1] << 8 | instruction[2])] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2])] >> 1);
+                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2])], true, true);
+                    _regPC += 3;
                     break;
-                case "5E":
-                    Console.WriteLine("SHR [" + instruction[1] + instruction[2] + " + X]");
+                case 0x5E:
+                    //Console.WriteLine("SHR [" + instruction[1] + instruction[2] + " + X]");
                     _flagC = false;
-                    _memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(_memory[(instruction[1] << 8 | instruction[2])] >> 1);
-                    processFlags(_memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2])] >> 1);
+                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    _regPC += 3;
                     break;
                 #endregion
                 #region Shift Left through carry
-                case "2A":
-                    Console.WriteLine("ROL A");
+                case 0x2A:
+                    //Console.WriteLine("ROL A");
                     _flagC = Convert.ToString(_regA, 2).PadLeft(8, '0')[0] == 1;
                     _regA = (byte)((_regA << 1) + Convert.ToInt32(_flagC)) ;
                     processFlags(_regA, true, true);
+                    _regPC += 1;
                     break;
-                case "26":
-                    Console.WriteLine("ROL [" + instruction[1] + "]");
-                    _flagC = Convert.ToString(_memory[instruction[1]], 2).PadLeft(8, '0')[0] == 1;
-                    _memory[instruction[1]] = (byte)((_memory[instruction[1]] << 1) + Convert.ToInt32(_flagC));
-                    processFlags(_memory[instruction[1]], true, true);
+                case 0x26:
+                    //Console.WriteLine("ROL [" + instruction[1] + "]");
+                    _flagC = Convert.ToString(RAM.Memory[instruction[1]], 2).PadLeft(8, '0')[0] == 1;
+                    RAM.Memory[instruction[1]] = (byte)((RAM.Memory[instruction[1]] << 1) + Convert.ToInt32(_flagC));
+                    processFlags(RAM.Memory[instruction[1]], true, true);
+                    _regPC += 2;
                     break;
-                case "36":
-                    Console.WriteLine("ROL [" + instruction[1] + " + X]");
-                    _flagC = Convert.ToString(_memory[instruction[1] + _regX], 2).PadLeft(8, '0')[0] == 1;
-                    _memory[instruction[1] + _regX] = (byte)((_memory[instruction[1] + _regX] << 1) + Convert.ToInt32(_flagC));
-                    processFlags(_memory[instruction[1] + _regX], true, true);
+                case 0x36:
+                    //Console.WriteLine("ROL [" + instruction[1] + " + X]");
+                    _flagC = Convert.ToString(RAM.Memory[instruction[1] + _regX], 2).PadLeft(8, '0')[0] == 1;
+                    RAM.Memory[instruction[1] + _regX] = (byte)((RAM.Memory[instruction[1] + _regX] << 1) + Convert.ToInt32(_flagC));
+                    processFlags(RAM.Memory[instruction[1] + _regX], true, true);
+                    _regPC += 2;
                     break;
-                case "2E":
-                    Console.WriteLine("ROL [" + instruction[1] + instruction[2] + "]");
-                    _flagC = Convert.ToString(_memory[(instruction[1] << 8 | instruction[2])], 2).PadLeft(8, '0')[0] == 1;
-                    _memory[(instruction[1] << 8 | instruction[2])] = (byte)((_memory[(instruction[1] << 8 | instruction[2])] << 1) + Convert.ToInt32(_flagC));
-                    processFlags(_memory[(instruction[1] << 8 | instruction[2])], true, true);
+                case 0x2E:
+                    //Console.WriteLine("ROL [" + instruction[1] + instruction[2] + "]");
+                    _flagC = Convert.ToString(RAM.Memory[(instruction[1] << 8 | instruction[2])], 2).PadLeft(8, '0')[0] == 1;
+                    RAM.Memory[(instruction[1] << 8 | instruction[2])] = (byte)((RAM.Memory[(instruction[1] << 8 | instruction[2])] << 1) + Convert.ToInt32(_flagC));
+                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2])], true, true);
+                    _regPC += 3;
                     break;
-                case "3E":
-                    Console.WriteLine("ROL [" + instruction[1] + instruction[2] + " + X]");
-                    _flagC = Convert.ToString(_memory[(instruction[1] << 8 | instruction[2]) + _regX], 2).PadLeft(8, '0')[0] == 1;
-                    _memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)((_memory[(instruction[1] << 8 | instruction[2])] << 1) + Convert.ToInt32(_flagC));
-                    processFlags(_memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                case 0x3E:
+                    //Console.WriteLine("ROL [" + instruction[1] + instruction[2] + " + X]");
+                    _flagC = Convert.ToString(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], 2).PadLeft(8, '0')[0] == 1;
+                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)((RAM.Memory[(instruction[1] << 8 | instruction[2])] << 1) + Convert.ToInt32(_flagC));
+                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    _regPC += 3;
                     break;
                 #endregion
                 #region Shift Right through carry
-                case "6A":
-                    Console.WriteLine("ROR A");
+                case 0x6A:
+                    //Console.WriteLine("ROR A");
                     _flagC = (_regA & (1 << 7)) != 0;
                     _regA = (byte)((_regA >> 1) | (Convert.ToByte(_flagC) << 8));
                     processFlags(_regA, true, true);
+                    _regPC += 1;
                     break;
-                case "66":
-                    Console.WriteLine("ROR [" + instruction[1] + "]");
-                    _flagC = (_memory[instruction[1]] & (1 << 7)) != 0;
-                    _memory[instruction[1]] = (byte)((_memory[instruction[1]] >> 1) | (Convert.ToByte(_flagC) << 8));
-                    processFlags(_memory[instruction[1]], true, true);
+                case 0x66:
+                    //Console.WriteLine("ROR [" + instruction[1] + "]");
+                    _flagC = (RAM.Memory[instruction[1]] & (1 << 7)) != 0;
+                    RAM.Memory[instruction[1]] = (byte)((RAM.Memory[instruction[1]] >> 1) | (Convert.ToByte(_flagC) << 8));
+                    processFlags(RAM.Memory[instruction[1]], true, true);
+                    _regPC += 2;
                     break;
-                case "76":
-                    Console.WriteLine("ROR [" + instruction[1] + " + X]");
-                    _flagC = (_memory[instruction[1] + _regX] & (1 << 7)) != 0; ;
-                    _memory[instruction[1] + _regX] = (byte)((_memory[instruction[1] + _regX] >> 1) | (Convert.ToByte(_flagC) << 8));
-                    processFlags(_memory[instruction[1] + _regX], true, true);
+                case 0x76:
+                    //Console.WriteLine("ROR [" + instruction[1] + " + X]");
+                    _flagC = (RAM.Memory[instruction[1] + _regX] & (1 << 7)) != 0; ;
+                    RAM.Memory[instruction[1] + _regX] = (byte)((RAM.Memory[instruction[1] + _regX] >> 1) | (Convert.ToByte(_flagC) << 8));
+                    processFlags(RAM.Memory[instruction[1] + _regX], true, true);
+                    _regPC += 2;
                     break;
-                case "6E":
-                    Console.WriteLine("ROR [" + instruction[1] + instruction[2] + "]");
-                    _flagC = (_memory[(instruction[1] << 8 | instruction[2])] & (1 << 7)) != 0; ; 
-                    _memory[(instruction[1] << 8 | instruction[2])] = (byte)((_memory[(instruction[1] << 8 | instruction[2])] >> 1) | (Convert.ToByte(_flagC) << 8));
-                    processFlags(_memory[(instruction[1] << 8 | instruction[2])], true, true);
+                case 0x6E:
+                    //Console.WriteLine("ROR [" + instruction[1] + instruction[2] + "]");
+                    _flagC = (RAM.Memory[(instruction[1] << 8 | instruction[2])] & (1 << 7)) != 0; ; 
+                    RAM.Memory[(instruction[1] << 8 | instruction[2])] = (byte)((RAM.Memory[(instruction[1] << 8 | instruction[2])] >> 1) | (Convert.ToByte(_flagC) << 8));
+                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2])], true, true);
+                    _regPC += 3;
                     break;
-                case "7E":
-                    Console.WriteLine("ROR [" + instruction[1] + instruction[2] + " + X]");
-                    _flagC = (_memory[(instruction[1] << 8 | instruction[2]) + _regX] & (1 << 7)) != 0; 
-                    _memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)((_memory[(instruction[1] << 8 | instruction[2])] >> 1) | (Convert.ToByte(_flagC) << 8));
-                    processFlags(_memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                case 0x7E:
+                    //Console.WriteLine("ROR [" + instruction[1] + instruction[2] + " + X]");
+                    _flagC = (RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] & (1 << 7)) != 0; 
+                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)((RAM.Memory[(instruction[1] << 8 | instruction[2])] >> 1) | (Convert.ToByte(_flagC) << 8));
+                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    _regPC += 3;
+                    break;
+                #endregion
+                #region CPU Jump and Control
+                case 0x4C:
+                    //Console.WriteLine("JMP " + instruction[1] + instruction[2]);
+                    _regPC = (ushort)(instruction[1] << 8 | instruction[2]);
+                    _regPC += 3;
+                    break;
+                case 0x6C:
+                    //Console.WriteLine("JMP [" + instruction[1] + instruction[2] + "]");
+                    _regPC = (ushort)(RAM.Memory[instruction[1] << 8 | instruction[2]]);
+                    _regPC += 3;
                     break;
                 #endregion
                 default:
-                    Console.WriteLine("UNKNOWN INSTRUCTION");
+                    //Console.WriteLine("UNKNOWN INSTRUCTION");
+                    _regPC += 1;
                     break;
             }
-            Console.WriteLine("-----------------");
-            Console.WriteLine("FLAG VALUES");
-            Console.WriteLine("CNVZ");
-            Console.WriteLine(Convert.ToString(Convert.ToInt32(_flagC)) + Convert.ToString(Convert.ToInt32(_flagN)) + Convert.ToString(Convert.ToInt32(_flagV)) + Convert.ToString(Convert.ToInt32(_flagZ)));
-            Console.WriteLine("-----------------");
-            Console.WriteLine("REGISTRY VALUES");
-            Console.WriteLine("A " + _regA);
-            Console.WriteLine("P " + _regP);
-            Console.WriteLine("PC " + _regPC);
-            Console.WriteLine("S " + _regS);
-            Console.WriteLine("X " + _regX);
-            Console.WriteLine("Y " + _regY);
-            System.Threading.Thread.Sleep(30);
+            //Console.WriteLine("-----------------");
+            //Console.WriteLine("FLAG VALUES");
+            //Console.WriteLine("CNVZ");
+            //Console.WriteLine(Convert.ToString(Convert.ToInt32(_flagC)) + Convert.ToString(Convert.ToInt32(_flagN)) + Convert.ToString(Convert.ToInt32(_flagV)) + Convert.ToString(Convert.ToInt32(_flagZ)));
+            //Console.WriteLine("-----------------");
+            //Console.WriteLine("REGISTRY VALUES");
+            //Console.WriteLine("A " + _regA);
+            //Console.WriteLine("P " + _regP);
+            //Console.WriteLine("PC " + _regPC);
+            //Console.WriteLine("S " + _regS);
+            //Console.WriteLine("X " + _regX);
+            //Console.WriteLine("Y " + _regY);
+            //System.Threading.Thread.Sleep(30);
             Console.Clear();
             
             return true;
 
         }
 
-        private void processSubtractFlags(byte value1, byte valueAdded, byte value2)
+        private static void processSubtractFlags(byte value1, byte valueAdded, byte value2)
         {
             string byteAsString1 = Convert.ToString(value1, 2).PadLeft(8, '0');
             string valueAddedAsString = Convert.ToString(valueAdded, 2).PadLeft(8, '0');
@@ -810,7 +949,7 @@ namespace Atari
                 _flagV = false;
         }
 
-        private void processAddFlags(byte value1, byte valueAdded, byte value2)
+        private static void processAddFlags(byte value1, byte valueAdded, byte value2)
         {
             string byteAsString1 = Convert.ToString(value1, 2).PadLeft(8, '0');
             string valueAddedAsString = Convert.ToString(valueAdded, 2).PadLeft(8, '0');
@@ -830,7 +969,7 @@ namespace Atari
             
         }
 
-        private void processFlags(byte value, bool n = false, bool z = false, bool c = false)
+        private static void processFlags(byte value, bool n = false, bool z = false, bool c = false)
         {
             string byteAsString = Convert.ToString(value, 2).PadLeft(8, '0');
             if (z)
@@ -843,7 +982,7 @@ namespace Atari
 
         }
 
-        private void calcCarryFromSubtract(byte value1, byte valueAdded)
+        private static void calcCarryFromSubtract(byte value1, byte valueAdded)
         {
             if (valueAdded > value1)
                 _flagC = true;
@@ -851,7 +990,7 @@ namespace Atari
                 _flagC = false;
         }
 
-        private void ByteToFlags(byte b)
+        private static void ByteToFlags(byte b)
         {
             _flagC = (b & (1 << 0)) != 0;
             _flagZ = (b & (1 << 1)) != 0;

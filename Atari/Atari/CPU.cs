@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,6 +39,8 @@ namespace Atari
 
         public static bool ProcessInstruction (byte[] instruction)
         {
+            //Stopwatch watch = new Stopwatch();
+            //watch.Start();
             var pText = (_flagN ? "1" : "0") + (_flagV ? "1" : "0") + (_flagU ? "1" : "0") + (_flagB ? "1" : "0") + (_flagD ? "1" : "0") + (_flagI ? "1" : "0") + (_flagZ ? "1" : "0") + (_flagC ? "1" : "0");
             _regP = Convert.ToByte(pText, 2);
             clock++;
@@ -917,6 +920,9 @@ namespace Atari
                     _regPC += 1;
                     break;
             }
+
+            //watch.Stop();
+
             //Console.WriteLine("-----------------");
             //Console.WriteLine("FLAG VALUES");
             //Console.WriteLine("CNVZ");
@@ -929,8 +935,9 @@ namespace Atari
             //Console.WriteLine("S " + _regS);
             //Console.WriteLine("X " + _regX);
             //Console.WriteLine("Y " + _regY);
+            //Console.WriteLine(watch.ElapsedMilliseconds);
             //System.Threading.Thread.Sleep(30);
-            Console.Clear();
+            //Console.Clear();
             
             return true;
 

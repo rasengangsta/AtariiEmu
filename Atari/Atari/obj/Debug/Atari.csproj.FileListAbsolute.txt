@@ -10,3 +10,6 @@ C:\Users\David\AtariiEmu\Atari\Atari\obj\Debug\Atari.pdb
 C:\Users\David\AtariiEmu\Atari\Atari\bin\Debug\Atari.exe
 C:\Users\David\AtariiEmu\Atari\Atari\bin\Debug\Atari.pdb
 C:\Users\David\AtariiEmu\Atari\Atari\obj\Debug\Atari.csprojResolveAssemblyReference.cache
+C:\Users\Dorset Police\Documents\GIT\AtariiEmu\Atari\Atari\bin\Debug\Atari.exe.config
+C:\Users\Dorset Police\Documents\GIT\AtariiEmu\Atari\Atari\obj\Debug\Atari.exe
+C:\Users\Dorset Police\Documents\GIT\AtariiEmu\Atari\Atari\obj\Debug\Atari.pdb

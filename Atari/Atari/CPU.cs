@@ -34,7 +34,7 @@ namespace Atari
         public CPU()
         {
             _regS = 0;
-            _memory = new byte[65535];
+            _memory = RAM._memory;
         }
 
         public bool ProcessInstruction (byte[] instruction)
@@ -707,6 +707,70 @@ namespace Atari
                     Console.WriteLine("SHR [" + instruction[1] + instruction[2] + " + X]");
                     _flagC = false;
                     _memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(_memory[(instruction[1] << 8 | instruction[2])] >> 1);
+                    processFlags(_memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    break;
+                #endregion
+                #region Shift Left through carry
+                case "2A":
+                    Console.WriteLine("ROL A");
+                    _flagC = Convert.ToString(_regA, 2).PadLeft(8, '0')[0] == 1;
+                    _regA = (byte)((_regA << 1) + Convert.ToInt32(_flagC)) ;
+                    processFlags(_regA, true, true);
+                    break;
+                case "26":
+                    Console.WriteLine("ROL [" + instruction[1] + "]");
+                    _flagC = Convert.ToString(_memory[instruction[1]], 2).PadLeft(8, '0')[0] == 1;
+                    _memory[instruction[1]] = (byte)((_memory[instruction[1]] << 1) + Convert.ToInt32(_flagC));
+                    processFlags(_memory[instruction[1]], true, true);
+                    break;
+                case "36":
+                    Console.WriteLine("ROL [" + instruction[1] + " + X]");
+                    _flagC = Convert.ToString(_memory[instruction[1] + _regX], 2).PadLeft(8, '0')[0] == 1;
+                    _memory[instruction[1] + _regX] = (byte)((_memory[instruction[1] + _regX] << 1) + Convert.ToInt32(_flagC));
+                    processFlags(_memory[instruction[1] + _regX], true, true);
+                    break;
+                case "2E":
+                    Console.WriteLine("ROL [" + instruction[1] + instruction[2] + "]");
+                    _flagC = Convert.ToString(_memory[(instruction[1] << 8 | instruction[2])], 2).PadLeft(8, '0')[0] == 1;
+                    _memory[(instruction[1] << 8 | instruction[2])] = (byte)((_memory[(instruction[1] << 8 | instruction[2])] << 1) + Convert.ToInt32(_flagC));
+                    processFlags(_memory[(instruction[1] << 8 | instruction[2])], true, true);
+                    break;
+                case "3E":
+                    Console.WriteLine("ROL [" + instruction[1] + instruction[2] + " + X]");
+                    _flagC = Convert.ToString(_memory[(instruction[1] << 8 | instruction[2]) + _regX], 2).PadLeft(8, '0')[0] == 1;
+                    _memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)((_memory[(instruction[1] << 8 | instruction[2])] << 1) + Convert.ToInt32(_flagC));
+                    processFlags(_memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    break;
+                #endregion
+                #region Shift Right through carry
+                case "6A":
+                    Console.WriteLine("ROR A");
+                    _flagC = (_regA & (1 << 7)) != 0;
+                    _regA = (byte)((_regA >> 1) | (Convert.ToByte(_flagC) << 8));
+                    processFlags(_regA, true, true);
+                    break;
+                case "66":
+                    Console.WriteLine("ROR [" + instruction[1] + "]");
+                    _flagC = (_memory[instruction[1]] & (1 << 7)) != 0;
+                    _memory[instruction[1]] = (byte)((_memory[instruction[1]] >> 1) | (Convert.ToByte(_flagC) << 8));
+                    processFlags(_memory[instruction[1]], true, true);
+                    break;
+                case "76":
+                    Console.WriteLine("ROR [" + instruction[1] + " + X]");
+                    _flagC = (_memory[instruction[1] + _regX] & (1 << 7)) != 0; ;
+                    _memory[instruction[1] + _regX] = (byte)((_memory[instruction[1] + _regX] >> 1) | (Convert.ToByte(_flagC) << 8));
+                    processFlags(_memory[instruction[1] + _regX], true, true);
+                    break;
+                case "6E":
+                    Console.WriteLine("ROR [" + instruction[1] + instruction[2] + "]");
+                    _flagC = (_memory[(instruction[1] << 8 | instruction[2])] & (1 << 7)) != 0; ; 
+                    _memory[(instruction[1] << 8 | instruction[2])] = (byte)((_memory[(instruction[1] << 8 | instruction[2])] >> 1) | (Convert.ToByte(_flagC) << 8));
+                    processFlags(_memory[(instruction[1] << 8 | instruction[2])], true, true);
+                    break;
+                case "7E":
+                    Console.WriteLine("ROR [" + instruction[1] + instruction[2] + " + X]");
+                    _flagC = (_memory[(instruction[1] << 8 | instruction[2]) + _regX] & (1 << 7)) != 0; 
+                    _memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)((_memory[(instruction[1] << 8 | instruction[2])] >> 1) | (Convert.ToByte(_flagC) << 8));
                     processFlags(_memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
                     break;
                 #endregion

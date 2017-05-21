@@ -13,7 +13,7 @@ namespace Atari
         byte _regA; // Accumulator
         byte _regX; // Index Register X
         byte _regY; // Index Register Y
-        short _regPC; // Program Counter
+        public short _regPC { get; set; } // Program Counter
         byte _regS; // Stack Pointer 
         byte _regP; // Processor Status Register
 
@@ -41,7 +41,6 @@ namespace Atari
         {
             var pText = (_flagN ? "1" : "0") + (_flagV ? "1" : "0") + (_flagU ? "1" : "0") + (_flagB ? "1" : "0") + (_flagD ? "1" : "0") + (_flagI ? "1" : "0") + (_flagZ ? "1" : "0") + (_flagC ? "1" : "0");
             _regP = Convert.ToByte(pText, 2);
-            _regPC++;
             Console.WriteLine("CURRENT INSTRUCTION");
             switch (BitConverter.ToString(new[] { instruction[0] }).Replace("-", " "))
             {
@@ -645,6 +644,70 @@ namespace Atari
                     Console.WriteLine("DEC Y");
                     _regY = (byte)(_regY - 1);
                     processFlags(_regY, true, true);
+                    break;
+                #endregion
+                #region Shift Left Logical/Arithmetic
+                case "0A":
+                    Console.WriteLine("SHL A");
+                    _flagC = Convert.ToString(_regA, 2).PadLeft(8, '0')[0] == 1;
+                    _regA = (byte)(_regA << 1);
+                    processFlags(_regA, true, true);
+                    break;
+                case "06":
+                    Console.WriteLine("SHL [" + instruction[1] + "]");
+                    _flagC = Convert.ToString(_memory[instruction[1]], 2).PadLeft(8, '0')[0] == 1;
+                    _memory[instruction[1]] = (byte)(_memory[instruction[1]] << 1);
+                    processFlags(_memory[instruction[1]], true, true);
+                    break;
+                case "16":
+                    Console.WriteLine("SHL [" + instruction[1] + " + X]");
+                    _flagC = Convert.ToString(_memory[instruction[1] + _regX], 2).PadLeft(8, '0')[0] == 1;
+                    _memory[instruction[1] + _regX] = (byte)(_memory[instruction[1] + _regX] << 1);
+                    processFlags(_memory[instruction[1] + _regX], true, true);
+                    break;
+                case "0E":
+                    Console.WriteLine("SHL [" + instruction[1] + instruction[2] + "]");
+                    _flagC = Convert.ToString(_memory[(instruction[1] << 8 | instruction[2])], 2).PadLeft(8, '0')[0] == 1;
+                    _memory[(instruction[1] << 8 | instruction[2])] = (byte)(_memory[(instruction[1] << 8 | instruction[2])] << 1);
+                    processFlags(_memory[(instruction[1] << 8 | instruction[2])], true, true);
+                    break;
+                case "1E":
+                    Console.WriteLine("SHL [" + instruction[1] + instruction[2] + " + X]");
+                    _flagC = Convert.ToString(_memory[(instruction[1] << 8 | instruction[2]) + _regX], 2).PadLeft(8, '0')[0] == 1;
+                    _memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(_memory[(instruction[1] << 8 | instruction[2])] << 1);
+                    processFlags(_memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    break;
+                #endregion
+                #region Shift Right Logical/Arithmetic
+                case "4A":
+                    Console.WriteLine("SHR A");
+                    _flagC = false;
+                    _regA = (byte)(_regA >> 1);
+                    processFlags(_regA, true, true);
+                    break;
+                case "46":
+                    Console.WriteLine("SHR [" + instruction[1] + "]");
+                    _flagC = false;
+                    _memory[instruction[1]] = (byte)(_memory[instruction[1]] >> 1);
+                    processFlags(_memory[instruction[1]], true, true);
+                    break;
+                case "56":
+                    Console.WriteLine("SHR [" + instruction[1] + " + X]");
+                    _flagC = false;
+                    _memory[instruction[1] + _regX] = (byte)(_memory[instruction[1] + _regX] >> 1);
+                    processFlags(_memory[instruction[1] + _regX], true, true);
+                    break;
+                case "4E":
+                    Console.WriteLine("SHR [" + instruction[1] + instruction[2] + "]");
+                    _flagC = false;
+                    _memory[(instruction[1] << 8 | instruction[2])] = (byte)(_memory[(instruction[1] << 8 | instruction[2])] >> 1);
+                    processFlags(_memory[(instruction[1] << 8 | instruction[2])], true, true);
+                    break;
+                case "5E":
+                    Console.WriteLine("SHR [" + instruction[1] + instruction[2] + " + X]");
+                    _flagC = false;
+                    _memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(_memory[(instruction[1] << 8 | instruction[2])] >> 1);
+                    processFlags(_memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
                     break;
                 #endregion
                 default:

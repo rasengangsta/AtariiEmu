@@ -11,16 +11,15 @@ namespace Atari
     {
         static void Main(string[] args)
         {
-            int romPointer = 0;
             var reader = new RomReader();
             var cpu = new CPU();
 
             var bytes = reader.Read();
 
-            while (romPointer < bytes.Length - 2)
+            while (cpu._regPC < bytes.Length - 2)
             {
-                var nextInstruction = getNextInstruction(bytes, romPointer);
-                romPointer = romPointer + nextInstruction.Length;
+                var nextInstruction = getNextInstruction(bytes, cpu._regPC);
+                cpu._regPC = (short)(cpu._regPC + nextInstruction.Length);
                 cpu.ProcessInstruction(nextInstruction);
             }
 

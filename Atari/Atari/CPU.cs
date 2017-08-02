@@ -28,6 +28,8 @@ namespace Atari
         static bool _flagN; // Negative (sign)
         static bool _flagU = true; // Unused Flag
 
+        static string byteAsString;
+
         public static int clock = 0;
 
         static byte regBuffer;
@@ -39,6 +41,38 @@ namespace Atari
 
         public static bool ProcessInstruction (byte[] instruction)
         {
+
+            //Console.WriteLine("-----------------");
+            //Console.WriteLine("FLAG VALUES");
+            //Console.WriteLine("CNVZ");
+            //Console.WriteLine(Convert.ToString(Convert.ToInt32(_flagC)) + Convert.ToString(Convert.ToInt32(_flagN)) + Convert.ToString(Convert.ToInt32(_flagV)) + Convert.ToString(Convert.ToInt32(_flagZ)));
+            //Console.WriteLine("-----------------");
+            //Console.WriteLine("REGISTRY VALUES");
+            //Console.WriteLine("A " + _regA);
+            //Console.WriteLine("P " + _regP);
+            //Console.WriteLine("PC " + _regPC.ToString("X"));
+            //Console.WriteLine("S " + _regS);
+            //Console.WriteLine("X " + _regX);
+            //Console.WriteLine("Y " + _regY);
+            //Console.WriteLine("--------------");
+            //Console.WriteLine("CURRENT INSTRUCTIONS");
+            //Console.WriteLine("INS1 " + instruction[0].ToString("X"));
+            //Console.WriteLine("INS2 " + instruction[1].ToString("X"));
+            //Console.WriteLine("INS3 " + instruction[2].ToString("X"));
+            //Console.WriteLine(RAM.Memory[0x0D]);
+            //Console.WriteLine(RAM.Memory[0x0E]);
+            //Console.WriteLine(RAM.Memory[0x0F]);
+
+            if (RAM.Memory[0x0F] != 0 || RAM.Memory[0x0E] != 0 || RAM.Memory[0x0D] != 0)
+            {
+                var x = 1;
+            }
+
+            if (instruction[0] == 0)
+            {
+                var z = 1;
+            }
+
             //Stopwatch watch = new Stopwatch();
             //watch.Start();
             var pText = (_flagN ? "1" : "0") + (_flagV ? "1" : "0") + (_flagU ? "1" : "0") + (_flagB ? "1" : "0") + (_flagD ? "1" : "0") + (_flagI ? "1" : "0") + (_flagZ ? "1" : "0") + (_flagC ? "1" : "0");
@@ -87,19 +121,19 @@ namespace Atari
                     //Console.WriteLine("MOV A,"+instruction[1]);
                     _regA = instruction[1];
                     processFlags(_regA, true, true);
-                    _regPC += 1;
+                    _regPC += 2;
                     break;
                 case 0xA2:
                     //Console.WriteLine("MOV X," + instruction[1]);
                     _regX = instruction[1];
                     processFlags(_regX, true, true);
-                    _regPC += 1;
+                    _regPC += 2;
                     break;
                 case 0xA0:
                     //Console.WriteLine("MOV Y," + instruction[1]);
                     _regY = instruction[1];
                     processFlags(_regY, true, true);
-                    _regPC += 1;
+                    _regPC += 2;
                     break;
                 #endregion
                 #region Load Register from Memory
@@ -118,19 +152,19 @@ namespace Atari
                     break;
                 case 0xAD:
                     //Console.WriteLine("MOV A,[" + instruction[1] + "+" + instruction[2] + "]");
-                    _regA = RAM.Memory[instruction[1] << 8 | instruction[2]];
+                    _regA = RAM.Memory[instruction[2] << 8 | instruction[1]];
                     processFlags(_regA, true, true);
                     _regPC += 3;
                     break;
                 case 0xBD:
                     //Console.WriteLine("MOV A,[" + instruction[1] + "+" + instruction[2] + "+X]");
-                    _regA = RAM.Memory[(instruction[1] << 8 | instruction[2])+_regX];
+                    _regA = RAM.Memory[(instruction[2] << 8 | instruction[1])+_regX];
                     processFlags(_regA, true, true);
                     _regPC += 3;
                     break;
                 case 0xB9:
                     //Console.WriteLine("MOV A,[" + instruction[1] + "+" + instruction[2] + "+Y]");
-                    _regA = RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY];
+                    _regA = RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regY];
                     processFlags(_regA, true, true);
                     _regPC += 3;
                     break;
@@ -160,13 +194,13 @@ namespace Atari
                     break;
                 case 0xAE:
                     //Console.WriteLine("MOV X,[" + instruction[1] + "+" + instruction[2] + "]");
-                    _regX = RAM.Memory[instruction[1] << 8 | instruction[2]];
+                    _regX = RAM.Memory[instruction[2] << 8 | instruction[1]];
                     processFlags(_regX, true, true);
                     _regPC += 3;
                     break;
                 case 0xBE:
                     //Console.WriteLine("MOV A,[" + instruction[1] + "+" + instruction[2] + "+Y]");
-                    _regX = RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY];
+                    _regX = RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regY];
                     processFlags(_regX, true, true);
                     _regPC += 3;
                     break;
@@ -184,13 +218,13 @@ namespace Atari
                     break;
                 case 0xAC:
                     //Console.WriteLine("MOV Y,[" + instruction[1] + "+" + instruction[2] + "]");
-                    _regY = RAM.Memory[instruction[1] << 8 | instruction[2]];
+                    _regY = RAM.Memory[instruction[2] << 8 | instruction[1]];
                     processFlags(_regY, true, true);
                     _regPC += 3;
                     break;
                 case 0xBC:
                     //Console.WriteLine("MOV Y,[" + instruction[1] + "+" + instruction[2] + "+X]");
-                    _regY = RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX];
+                    _regY = RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX];
                     processFlags(_regY, true, true);
                     _regPC += 3;
                     break;
@@ -208,17 +242,17 @@ namespace Atari
                     break;
                 case 0x8D:
                     //Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] +"], A");
-                    RAM.Memory[(instruction[1] << 8 | instruction[2])] = _regA;
+                    RAM.Memory[(instruction[2] << 8 | instruction[1])] = _regA;
                     _regPC += 3;
                     break;
                 case 0x9D:
                     //Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] + "+X], A");
-                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] = _regA;
+                    RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX] = _regA;
                     _regPC += 3;
                     break;
                 case 0x99:
                     //Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] + "+Y], A");
-                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY] = _regA;
+                    RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regY] = _regA;
                     _regPC += 3;
                     break;
                 case 0x81:
@@ -243,7 +277,7 @@ namespace Atari
                     break;
                 case 0x8E:
                     //Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] + "], X");
-                    RAM.Memory[instruction[1] << 8 | instruction[2]] = _regX;
+                    RAM.Memory[instruction[2] << 8 | instruction[1]] = _regX;
                     _regPC += 3;
                     break;
                 case 0x84:
@@ -258,7 +292,7 @@ namespace Atari
                     break;
                 case 0x8C:
                     //Console.WriteLine("MOV [" + instruction[1] + "+" + instruction[2] + "], Y");
-                    RAM.Memory[instruction[1] << 8 | instruction[2]] = _regY;
+                    RAM.Memory[instruction[2] << 8 | instruction[1]] = _regY;
                     _regPC += 3;
                     break;
                 #endregion
@@ -322,25 +356,25 @@ namespace Atari
                 case 0x6D:
                     //Console.WriteLine("ADC A,[" + RAM.Memory[instruction[1]] + "+" + RAM.Memory[instruction[2]] + "]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA + RAM.Memory[(instruction[1] << 8 | instruction[2])] + Convert.ToByte(_flagC));
+                    _regA = (byte)(_regA + RAM.Memory[(instruction[2] << 8 | instruction[1])] + Convert.ToByte(_flagC));
                     processFlags(_regA, true, true);
-                    processAddFlags(regBuffer, RAM.Memory[(instruction[1] << 8 | instruction[2])], _regA);
+                    processAddFlags(regBuffer, RAM.Memory[(instruction[2] << 8 | instruction[1])], _regA);
                     _regPC += 3;
                     break;
                 case 0x7D:
                     //Console.WriteLine("ADC A,[" + RAM.Memory[instruction[1]] + "+" + RAM.Memory[instruction[2]] + "+X]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA + RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] + Convert.ToByte(_flagC));
+                    _regA = (byte)(_regA + RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX] + Convert.ToByte(_flagC));
                     processFlags(_regA, true, true);
-                    processAddFlags(regBuffer, RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], _regA);
+                    processAddFlags(regBuffer, RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX], _regA);
                     _regPC += 3;
                     break;
                 case 0x79:
                     //Console.WriteLine("ADC A,[" + RAM.Memory[instruction[1]] + "+" + RAM.Memory[instruction[2]] + "+Y]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA + RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY] + Convert.ToByte(_flagC));
+                    _regA = (byte)(_regA + RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regY] + Convert.ToByte(_flagC));
                     processFlags(_regA, true, true);
-                    processAddFlags(regBuffer, RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY], _regA);
+                    processAddFlags(regBuffer, RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regY], _regA);
                     _regPC += 3;
                     break;
                 case 0x61:
@@ -389,25 +423,25 @@ namespace Atari
                 case 0xED:
                     //Console.WriteLine("SBC A,[" + RAM.Memory[instruction[1]] + "+" + RAM.Memory[instruction[2]] + "]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA - RAM.Memory[(instruction[1] << 8 | instruction[2])] + Convert.ToByte(_flagC) -1);
+                    _regA = (byte)(_regA - RAM.Memory[(instruction[2] << 8 | instruction[1])] + Convert.ToByte(_flagC) -1);
                     processFlags(_regA, true, true);
-                    processSubtractFlags(regBuffer, RAM.Memory[(instruction[1] << 8 | instruction[2])], _regA);
+                    processSubtractFlags(regBuffer, RAM.Memory[(instruction[2] << 8 | instruction[1])], _regA);
                     _regPC += 3;
                     break;
                 case 0xFD:
                     //Console.WriteLine("SBC A,[" + RAM.Memory[instruction[1]] + "+" + RAM.Memory[instruction[2]] + "+X]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA - RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] + Convert.ToByte(_flagC) -1);
+                    _regA = (byte)(_regA - RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX] + Convert.ToByte(_flagC) -1);
                     processFlags(_regA, true, true);
-                    processSubtractFlags(regBuffer, RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], _regA);
+                    processSubtractFlags(regBuffer, RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX], _regA);
                     _regPC += 3;
                     break;
                 case 0xF9:
                     //Console.WriteLine("SBC A,[" + RAM.Memory[instruction[1]] + "+" + RAM.Memory[instruction[2]] + "+Y]");
                     regBuffer = _regA;
-                    _regA = (byte)(_regA - RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY] + Convert.ToByte(_flagC) -1);
+                    _regA = (byte)(_regA - RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regY] + Convert.ToByte(_flagC) -1);
                     processFlags(_regA, true, true);
-                    processSubtractFlags(regBuffer, RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY], _regA);
+                    processSubtractFlags(regBuffer, RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regY], _regA);
                     _regPC += 3;
                     break;
                 case 0xE1:
@@ -449,19 +483,19 @@ namespace Atari
                     break;
                 case 0x2D:
                     //Console.WriteLine("AND A,[" + instruction[1] + "+" + instruction[2] + "]");
-                    _regA = (byte)(_regA & RAM.Memory[(instruction[1] << 8 | instruction[2])]);
+                    _regA = (byte)(_regA & RAM.Memory[(instruction[2] << 8 | instruction[1])]);
                     processFlags(_regA, true, true);
                     _regPC += 3;
                     break;
                 case 0x3D:
                     //Console.WriteLine("AND A,[" + instruction[1] + "+" + instruction[2] + " +X]");
-                    _regA = (byte)(_regA & RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX]);
+                    _regA = (byte)(_regA & RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX]);
                     processFlags(_regA, true, true);
                     _regPC += 3;
                     break;
                 case 0x39:
                     //Console.WriteLine("AND A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
-                    _regA = (byte)(_regA & RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY]);
+                    _regA = (byte)(_regA & RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regY]);
                     processFlags(_regA, true, true);
                     _regPC += 3;
                     break;
@@ -499,19 +533,19 @@ namespace Atari
                     break;
                 case 0x4D:
                     //Console.WriteLine("XOR A,[" + instruction[1] + "+" + instruction[2] + "]");
-                    _regA = (byte)(_regA ^ RAM.Memory[(instruction[1] << 8 | instruction[2])]);
+                    _regA = (byte)(_regA ^ RAM.Memory[(instruction[2] << 8 | instruction[1])]);
                     processFlags(_regA, true, true);
                     _regPC += 3;
                     break;
                 case 0x5D:
                     //Console.WriteLine("XOR A,[" + instruction[1] + "+" + instruction[2] + " +X]");
-                    _regA = (byte)(_regA ^ RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX]);
+                    _regA = (byte)(_regA ^ RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX]);
                     processFlags(_regA, true, true);
                     _regPC += 3;
                     break;
                 case 0x59:
                     //Console.WriteLine("XOR A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
-                    _regA = (byte)(_regA ^ RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY]);
+                    _regA = (byte)(_regA ^ RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regY]);
                     processFlags(_regA, true, true);
                     _regPC += 3;
                     break;
@@ -549,19 +583,19 @@ namespace Atari
                     break;
                 case 0x0D:
                     //Console.WriteLine("OR A,[" + instruction[1] + "+" + instruction[2] + "]");
-                    _regA = (byte)(_regA | RAM.Memory[(instruction[1] << 8 | instruction[2])]);
+                    _regA = (byte)(_regA | RAM.Memory[(instruction[2] << 8 | instruction[1])]);
                     processFlags(_regA, true, true);
                     _regPC += 3;
                     break;
                 case 0x1D:
                     //Console.WriteLine("OR A,[" + instruction[1] + "+" + instruction[2] + " +X]");
-                    _regA = (byte)(_regA | RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX]);
+                    _regA = (byte)(_regA | RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX]);
                     processFlags(_regA, true, true);
                     _regPC += 3;
                     break;
                 case 0x19:
                     //Console.WriteLine("OR A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
-                    _regA = (byte)(_regA | RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY]);
+                    _regA = (byte)(_regA | RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regY]);
                     processFlags(_regA, true, true);
                     _regPC += 3;
                     break;
@@ -602,21 +636,21 @@ namespace Atari
                     break;
                 case 0xCD:
                     //Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + "]");
-                    regBuffer = (byte)(_regA | RAM.Memory[(instruction[1] << 8 | instruction[2])]);
+                    regBuffer = (byte)(_regA | RAM.Memory[(instruction[2] << 8 | instruction[1])]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
                     _regPC += 3;
                     break;
                 case 0xDD:
                     //Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + " +X]");
-                    regBuffer = (byte)(_regA | RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX]);
+                    regBuffer = (byte)(_regA | RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
                     _regPC += 3;
                     break;
                 case 0xD9:
                     //Console.WriteLine("CMP A,[" + instruction[1] + "+" + instruction[2] + " +Y]");
-                    regBuffer = (byte)(_regA | RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regY]);
+                    regBuffer = (byte)(_regA | RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regY]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
                     _regPC += 3;
@@ -651,7 +685,7 @@ namespace Atari
                     break;
                 case 0xEC:
                     //Console.WriteLine("CMP X,[" + instruction[1] + "+" + instruction[2] + "]");
-                    regBuffer = (byte)(_regX | RAM.Memory[(instruction[1] << 8 | instruction[2])]);
+                    regBuffer = (byte)(_regX | RAM.Memory[(instruction[2] << 8 | instruction[1])]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
                     _regPC += 3;
@@ -672,12 +706,27 @@ namespace Atari
                     break;
                 case 0xCC:
                     //Console.WriteLine("CMP Y,[" + instruction[1] + "+" + instruction[2] + "]");
-                    regBuffer = (byte)(_regY | RAM.Memory[(instruction[1] << 8 | instruction[2])]);
+                    regBuffer = (byte)(_regY | RAM.Memory[(instruction[2] << 8 | instruction[1])]);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
                     _regPC += 3;
                     break;
+                case 0x24:
+                    byteAsString = Convert.ToString(RAM.Memory[instruction[1]], 2).PadLeft(8, '0');
+                    _flagN = Convert.ToBoolean(Convert.ToInt32(byteAsString[0]));
+                    _flagV = Convert.ToBoolean(Convert.ToInt32(byteAsString[1]));
+                    _flagZ = ((RAM.Memory[instruction[1]] & _regA) == 0);
+                    _regPC += 2;
+                    break;
+                case 0x2C:
+                    byteAsString = Convert.ToString(RAM.Memory[(instruction[2] << 8 | instruction[1])], 2).PadLeft(8, '0');
+                    _flagN = Convert.ToBoolean(Convert.ToInt32(byteAsString[0]));
+                    _flagV = Convert.ToBoolean(Convert.ToInt32(byteAsString[1]));
+                    _flagZ = ((RAM.Memory[(instruction[2] << 8 | instruction[1])] & _regA) == 0);
+                    _regPC += 3;
+                    break;
                 #endregion
+
                 #region Increment
                 case 0xE6:
                     //Console.WriteLine("INC [" + instruction[1] + "]");
@@ -693,15 +742,15 @@ namespace Atari
                     break;
                 case 0xEE:
                     //Console.WriteLine("INC [" + instruction[1] + "+" + instruction[2] + "]");
-                    RAM.Memory[(instruction[1] << 8 | instruction[2])] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2])] + 1);
+                    RAM.Memory[(instruction[2] << 8 | instruction[1])] = (byte)(RAM.Memory[(instruction[2] << 8 | instruction[1])] + 1);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
                     _regPC += 3;
                     break;
                 case 0xFE:
                     //Console.WriteLine("INC [" + instruction[1] + "+" + instruction[2] + "] + X");
-                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] + 1);
-                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX] = (byte)(RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX] + 1);
+                    processFlags(RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX], true, true);
                     _regPC += 3;
                     break;
                 case 0xE8:
@@ -732,15 +781,15 @@ namespace Atari
                     break;
                 case 0xCE:
                     //Console.WriteLine("DEC [" + instruction[1] + "+" + instruction[2] + "]");
-                    RAM.Memory[(instruction[1] << 8 | instruction[2])] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2])] - 1);
+                    RAM.Memory[(instruction[2] << 8 | instruction[1])] = (byte)(RAM.Memory[(instruction[2] << 8 | instruction[1])] - 1);
                     processFlags(regBuffer, true, true);
                     calcCarryFromSubtract(regBuffer, instruction[1]);
                     _regPC += 3;
                     break;
                 case 0xDE:
                     //Console.WriteLine("DEC [" + instruction[1] + "+" + instruction[2] + "] + X");
-                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] - 1);
-                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX] = (byte)(RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX] - 1);
+                    processFlags(RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX], true, true);
                     _regPC += 3;
                     break;
                 case 0xCA:
@@ -780,15 +829,15 @@ namespace Atari
                     break;
                 case 0x0E:
                     //Console.WriteLine("SHL [" + instruction[1] + instruction[2] + "]");
-                    _flagC = Convert.ToString(RAM.Memory[(instruction[1] << 8 | instruction[2])], 2).PadLeft(8, '0')[0] == 1;
-                    RAM.Memory[(instruction[1] << 8 | instruction[2])] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2])] << 1);
-                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2])], true, true);
+                    _flagC = Convert.ToString(RAM.Memory[(instruction[2] << 8 | instruction[1])], 2).PadLeft(8, '0')[0] == 1;
+                    RAM.Memory[(instruction[2] << 8 | instruction[1])] = (byte)(RAM.Memory[(instruction[2] << 8 | instruction[1])] << 1);
+                    processFlags(RAM.Memory[(instruction[2] << 8 | instruction[1])], true, true);
                     break;
                 case 0x1E:
                     //Console.WriteLine("SHL [" + instruction[1] + instruction[2] + " + X]");
-                    _flagC = Convert.ToString(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], 2).PadLeft(8, '0')[0] == 1;
-                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2])] << 1);
-                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    _flagC = Convert.ToString(RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX], 2).PadLeft(8, '0')[0] == 1;
+                    RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX] = (byte)(RAM.Memory[(instruction[2] << 8 | instruction[1])] << 1);
+                    processFlags(RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX], true, true);
                     _regPC += 3;
                     break;
                 #endregion
@@ -817,15 +866,15 @@ namespace Atari
                 case 0x4E:
                     //Console.WriteLine("SHR [" + instruction[1] + instruction[2] + "]");
                     _flagC = false;
-                    RAM.Memory[(instruction[1] << 8 | instruction[2])] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2])] >> 1);
-                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2])], true, true);
+                    RAM.Memory[(instruction[2] << 8 | instruction[1])] = (byte)(RAM.Memory[(instruction[2] << 8 | instruction[1])] >> 1);
+                    processFlags(RAM.Memory[(instruction[2] << 8 | instruction[1])], true, true);
                     _regPC += 3;
                     break;
                 case 0x5E:
                     //Console.WriteLine("SHR [" + instruction[1] + instruction[2] + " + X]");
                     _flagC = false;
-                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)(RAM.Memory[(instruction[1] << 8 | instruction[2])] >> 1);
-                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX] = (byte)(RAM.Memory[(instruction[2] << 8 | instruction[1])] >> 1);
+                    processFlags(RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX], true, true);
                     _regPC += 3;
                     break;
                 #endregion
@@ -853,16 +902,16 @@ namespace Atari
                     break;
                 case 0x2E:
                     //Console.WriteLine("ROL [" + instruction[1] + instruction[2] + "]");
-                    _flagC = Convert.ToString(RAM.Memory[(instruction[1] << 8 | instruction[2])], 2).PadLeft(8, '0')[0] == 1;
-                    RAM.Memory[(instruction[1] << 8 | instruction[2])] = (byte)((RAM.Memory[(instruction[1] << 8 | instruction[2])] << 1) + Convert.ToInt32(_flagC));
-                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2])], true, true);
+                    _flagC = Convert.ToString(RAM.Memory[(instruction[2] << 8 | instruction[1])], 2).PadLeft(8, '0')[0] == 1;
+                    RAM.Memory[(instruction[2] << 8 | instruction[1])] = (byte)((RAM.Memory[(instruction[2] << 8 | instruction[1])] << 1) + Convert.ToInt32(_flagC));
+                    processFlags(RAM.Memory[(instruction[2] << 8 | instruction[1])], true, true);
                     _regPC += 3;
                     break;
                 case 0x3E:
                     //Console.WriteLine("ROL [" + instruction[1] + instruction[2] + " + X]");
-                    _flagC = Convert.ToString(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], 2).PadLeft(8, '0')[0] == 1;
-                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)((RAM.Memory[(instruction[1] << 8 | instruction[2])] << 1) + Convert.ToInt32(_flagC));
-                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    _flagC = Convert.ToString(RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX], 2).PadLeft(8, '0')[0] == 1;
+                    RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX] = (byte)((RAM.Memory[(instruction[2] << 8 | instruction[1])] << 1) + Convert.ToInt32(_flagC));
+                    processFlags(RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX], true, true);
                     _regPC += 3;
                     break;
                 #endregion
@@ -890,55 +939,238 @@ namespace Atari
                     break;
                 case 0x6E:
                     //Console.WriteLine("ROR [" + instruction[1] + instruction[2] + "]");
-                    _flagC = (RAM.Memory[(instruction[1] << 8 | instruction[2])] & (1 << 7)) != 0; ; 
-                    RAM.Memory[(instruction[1] << 8 | instruction[2])] = (byte)((RAM.Memory[(instruction[1] << 8 | instruction[2])] >> 1) | (Convert.ToByte(_flagC) << 8));
-                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2])], true, true);
+                    _flagC = (RAM.Memory[(instruction[2] << 8 | instruction[1])] & (1 << 7)) != 0; ; 
+                    RAM.Memory[(instruction[2] << 8 | instruction[1])] = (byte)((RAM.Memory[(instruction[2] << 8 | instruction[1])] >> 1) | (Convert.ToByte(_flagC) << 8));
+                    processFlags(RAM.Memory[(instruction[2] << 8 | instruction[1])], true, true);
                     _regPC += 3;
                     break;
                 case 0x7E:
                     //Console.WriteLine("ROR [" + instruction[1] + instruction[2] + " + X]");
-                    _flagC = (RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] & (1 << 7)) != 0; 
-                    RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX] = (byte)((RAM.Memory[(instruction[1] << 8 | instruction[2])] >> 1) | (Convert.ToByte(_flagC) << 8));
-                    processFlags(RAM.Memory[(instruction[1] << 8 | instruction[2]) + _regX], true, true);
+                    _flagC = (RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX] & (1 << 7)) != 0; 
+                    RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX] = (byte)((RAM.Memory[(instruction[2] << 8 | instruction[1])] >> 1) | (Convert.ToByte(_flagC) << 8));
+                    processFlags(RAM.Memory[(instruction[2] << 8 | instruction[1]) + _regX], true, true);
                     _regPC += 3;
                     break;
                 #endregion
                 #region CPU Jump and Control
                 case 0x4C:
                     //Console.WriteLine("JMP " + instruction[1] + instruction[2]);
-                    _regPC = (ushort)(instruction[1] << 8 | instruction[2]);
-                    _regPC += 3;
+                    _regPC = (ushort)(instruction[2] << 8 | instruction[1]);
                     break;
                 case 0x6C:
                     //Console.WriteLine("JMP [" + instruction[1] + instruction[2] + "]");
-                    _regPC = (ushort)(RAM.Memory[instruction[1] << 8 | instruction[2]]);
+                    _regPC = (ushort)(RAM.Memory[instruction[2] << 8 | instruction[1]]);
+                    break;
+                case 0x20:
+                    //Console.WriteLine("JSR [" + instruction[1] + instruction[2] + "]");
+                    RAM.Memory[_regS] = (byte)((_regPC + 2) >> 8);
+                    RAM.Memory[_regS+1] = (byte)((_regPC + 2) & 0xff);
+                    _regPC = (ushort)(instruction[2] << 8 | instruction[1]);
+                    break;
+                case 0x40:
+                    //Console.WriteLine("RTI");
+                    _regPC = (ushort)((RAM.Memory[_regS] << 8 | RAM.Memory[_regS + 1]));
+                    _regP = (byte)((RAM.Memory[_regS] << 8 | RAM.Memory[_regS + 1]));
+                    break;
+                case 0x60:
+                    //Console.WriteLine("RTS");
+                    _regPC = (ushort)((RAM.Memory[_regS] << 8 | RAM.Memory[_regS+1]) + 1);
+                    break;
+
+
+                case 0x10:
+                    //Console.WriteLine("BPL");
+                    if (!_flagN)
+                    {
+                        _regPC = (ushort)(_regPC + (sbyte)instruction[1] + 2);
+                    }
+                    else
+                    {
+                        _regPC += 2;
+                    }
+                    break;
+                case 0x30:
+                    //Console.WriteLine("BMI");
+                    if (_flagN)
+                    {
+                        _regPC = (ushort)(_regPC + (sbyte)instruction[1] + 2);
+                    }
+                    else
+                    {
+                        _regPC += 2;
+                    }
+                    break;
+                case 0x50:
+                    //Console.WriteLine("BVC");
+                    if (!_flagV)
+                    {
+                        _regPC = (ushort)(_regPC + (sbyte)instruction[1] + 2);
+                    }
+                    else
+                    {
+                        _regPC += 2;
+                    }
+                    break;
+                case 0x70:
+                    //Console.WriteLine("BVS");
+                    if (_flagV)
+                    {
+                        _regPC = (ushort)(_regPC + (sbyte)instruction[1] + 2);
+                    }
+                    else
+                    {
+                        _regPC += 2;
+                    }
+                    break;
+                case 0x90:
+                    //Console.WriteLine("BCC");
+                    if (!_flagC)
+                    {
+                        _regPC = (ushort)(_regPC + (sbyte)instruction[1] + 2);
+                    }
+                    else
+                    {
+                        _regPC += 2;
+                    }
+                    break;
+                case 0xB0:
+                    //Console.WriteLine("BCS");
+                    if (_flagC)
+                    {
+                        _regPC = (ushort)(_regPC + (sbyte)instruction[1] + 2);
+                    }
+                    else
+                    {
+                        _regPC += 2;
+                    }
+                    break;
+                case 0xD0:
+                    //Console.WriteLine("BNE");
+                    if (!_flagZ)
+                    {
+                        _regPC = (ushort)(_regPC + (sbyte)instruction[1] + 2);
+                    }
+                    else
+                    {
+                        _regPC += 2;
+                    }
+                    break;
+                case 0xF0:
+                    //Console.WriteLine("BEQ");
+                    if (_flagZ)
+                    {
+                        _regPC = (ushort)(_regPC + (sbyte)instruction[1] + 2);
+                    }
+                    else
+                    {
+                        _regPC += 2;
+                    }
+                    break;
+                case 0x00:
+                    //Console.WriteLine("BRK");
+                    //TODO
+                    _regPC += 1;
+                    break;
+
+                case 0x18:
+                    //Console.WriteLine("CLS");
+                    _flagC = false;
+                    _regPC += 1;
+                    break;
+                case 0x58:
+                    //Console.WriteLine("CLI");
+                    _flagI = false;
+                    _regPC += 1;
+                    break;
+                case 0xD8:
+                    //Console.WriteLine("CLD");
+                    _flagD = false;
+                    _regPC += 1;
+                    break;
+                case 0xB8:
+                    //Console.WriteLine("CLV");
+                    _flagV = false;
+                    _regPC += 1;
+                    break;
+                case 0x38:
+                    //Console.WriteLine("SEC");
+                    _flagC = true;
+                    _regPC += 1;
+                    break;
+                case 0x78:
+                    //Console.WriteLine("SEI");
+                    _flagI = true;
+                    _regPC += 1;
+                    break;
+                case 0xF8:
+                    //Console.WriteLine("SEC");
+                    _flagD = true;
+                    _regPC += 1;
+                    break;
+                case 0xEA:
+                    //Console.WriteLine("NOP");
+                    _regPC += 1;
+                    break;
+                case 0x87:
+                    RAM.Memory[instruction[1]] = (byte)(_regA & _regY);
+                    _regPC += 2;
+                    break;
+                case 0x97:
+                    RAM.Memory[instruction[1]+_regY] = (byte)(_regA & _regY);
+                    _regPC += 2;
+                    break;
+                case 0x8F:
+                    RAM.Memory[(instruction[2] << 8 | instruction[1])] = (byte)(_regA & _regY);
                     _regPC += 3;
+                    break;
+                case 0x83:
+                    RAM.Memory[RAM.Memory[instruction[1] + _regX]] = (byte)(_regA & _regY);
+                    _regPC += 2;
+                    break;
+                case 0xA7:
+                    _regA = RAM.Memory[instruction[1]];
+                    _regX = RAM.Memory[instruction[1]];
+                    processFlags(_regA, true, true);
+                    _regPC += 2;
+                    break;
+                case 0xB7:
+                    _regA = RAM.Memory[instruction[1]+_regY];
+                    _regX = RAM.Memory[instruction[1]+_regY];
+                    processFlags(_regA, true, true);
+                    _regPC += 2;
+                    break;
+                case 0xAF:
+                    _regA = RAM.Memory[(instruction[2] << 8 | instruction[1])];
+                    _regX = RAM.Memory[(instruction[2] << 8 | instruction[1])];
+                    processFlags(_regA, true, true);
+                    _regPC += 3;
+                    break;
+                case 0xA3:
+                    _regA = RAM.Memory[RAM.Memory[instruction[1] + _regX]];
+                    _regX = RAM.Memory[RAM.Memory[instruction[1] + _regX]];
+                    processFlags(_regA, true, true);
+                    _regPC += 2;
+                    break;
+                case 0xB3:
+                    _regA = RAM.Memory[RAM.Memory[instruction[1]] + _regY];
+                    _regX = RAM.Memory[RAM.Memory[instruction[1]] + _regY];
+                    processFlags(_regA, true, true);
+                    _regPC += 2;
                     break;
                 #endregion
                 default:
                     //Console.WriteLine("UNKNOWN INSTRUCTION");
-                    _regPC += 1;
+                    _regPC += 2;
                     break;
             }
 
             //watch.Stop();
 
-            //Console.WriteLine("-----------------");
-            //Console.WriteLine("FLAG VALUES");
-            //Console.WriteLine("CNVZ");
-            //Console.WriteLine(Convert.ToString(Convert.ToInt32(_flagC)) + Convert.ToString(Convert.ToInt32(_flagN)) + Convert.ToString(Convert.ToInt32(_flagV)) + Convert.ToString(Convert.ToInt32(_flagZ)));
-            //Console.WriteLine("-----------------");
-            //Console.WriteLine("REGISTRY VALUES");
-            //Console.WriteLine("A " + _regA);
-            //Console.WriteLine("P " + _regP);
-            //Console.WriteLine("PC " + _regPC);
-            //Console.WriteLine("S " + _regS);
-            //Console.WriteLine("X " + _regX);
-            //Console.WriteLine("Y " + _regY);
+           
+
             //Console.WriteLine(watch.ElapsedMilliseconds);
-            //System.Threading.Thread.Sleep(30);
             //Console.Clear();
-            
+
             return true;
 
         }
@@ -985,7 +1217,7 @@ namespace Atari
                 else
                     _flagZ = false;
             if (n)
-                _flagN = (byteAsString[0] == '0');
+                _flagN = (byteAsString[0] != '0');
 
         }
 

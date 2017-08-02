@@ -18,3 +18,5 @@ C:\Users\Dorset Police\Documents\GIT\AtariiEmu\Atari\Atari\bin\Debug\Atari.exe
 C:\Users\Dorset Police\Documents\GIT\AtariiEmu\Atari\Atari\bin\Debug\Atari.pdb
 C:\Users\Dorset Police\Documents\GIT\AtariiEmu\Atari\Atari\bin\Debug\NAudio.dll
 C:\Users\Dorset Police\Documents\GIT\AtariiEmu\Atari\Atari\bin\Debug\NAudio.xml
+C:\Users\David\AtariiEmu\Atari\Atari\bin\Debug\NAudio.dll
+C:\Users\David\AtariiEmu\Atari\Atari\bin\Debug\NAudio.xml

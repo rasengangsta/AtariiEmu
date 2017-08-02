@@ -13,10 +13,12 @@ namespace Atari
 
         public byte[] Read()
         {
-            var bytes = File.ReadAllBytes(@"C:\Users\David\Documents\Visual Studio 2015\Projects\Atari\Atari\SpaceInvaders.bin");
+            var bytes = File.ReadAllBytes(@"C:\Users\David\AtariiEmu\Atari\Atari\Spaceinvaders.bin");
+
             var bytesReadable = BitConverter.ToString(bytes).Replace("-", " ");
             Console.Write(bytesReadable);
             Console.ReadLine();
+
             return bytes;
         }
     }
